@@ -1,0 +1,127 @@
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 220 25% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 14%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 94%;
+    --secondary-foreground: 220 25% 20%;
+    --muted: 210 35% 95%;
+    --muted-foreground: 220 15% 52%;
+    --accent: 38 92% 60%;
+    --accent-foreground: 220 25% 14%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 90%;
+    --input: 214 32% 90%;
+    --ring: 221 83% 53%;
+    --radius: 0.75rem;
+
+    /* Brand palette */
+    --blue-50:  221 100% 97%;
+    --blue-100: 221 91% 91%;
+    --blue-500: 221 83% 53%;
+    --blue-600: 221 83% 45%;
+    --orange-50:  38 100% 96%;
+    --orange-400: 38 92% 60%;
+    --green-50:  142 76% 96%;
+    --green-500: 142 72% 45%;
+    --red-50:    0 86% 97%;
+    --red-500:   0 84% 60%;
+    --purple-50: 258 100% 97%;
+    --purple-500:258 70% 62%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 16px;
+    line-height: 1.65;
+    overflow-x: hidden;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  /* Coloured card variants */
+  .card-sky      { background: hsl(var(--blue-50));   border-color: hsl(var(--blue-100)); }
+  .card-sunshine { background: hsl(var(--orange-50)); border-color: hsl(38 92% 82%); }
+  .card-mint     { background: hsl(var(--green-50));  border-color: hsl(142 72% 80%); }
+  .card-coral    { background: hsl(var(--red-50));    border-color: hsl(0 84% 82%); }
+  .card-lavender { background: hsl(var(--purple-50)); border-color: hsl(258 70% 82%); }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(hsl(214 32% 90% / 0.6) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(214 32% 90% / 0.6) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pop {
+    0%   { transform: scale(0.96); opacity: 0; }
+    60%  { transform: scale(1.02); }
+    100% { transform: scale(1);    opacity: 1; }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50%       { transform: translateY(-10px) rotate(3deg); }
+  }
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateX(16px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .animate-fade-up  { animation: fade-up  0.5s cubic-bezier(.16,1,.3,1) both; }
+  .animate-pop      { animation: pop      0.4s cubic-bezier(.16,1,.3,1) both; }
+  .animate-fade-in  { animation: fade-in  0.3s ease both; }
+  .animate-float    { animation: float    4s ease-in-out infinite; }
+  .animate-slide-in { animation: slide-in 0.35s cubic-bezier(.16,1,.3,1) both; }
+
+  .delay-100 { animation-delay: 0.1s; }
+  .delay-200 { animation-delay: 0.2s; }
+  .delay-300 { animation-delay: 0.3s; }
+  .delay-400 { animation-delay: 0.4s; }
+}
+
+/* Hide scrollbar but keep scrollability */
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Mapbox popup clean style */
+.mapbox-popup-clean .mapboxgl-popup-content {
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  border: 1px solid hsl(214 32% 90%);
+}
+.mapbox-popup-clean .mapboxgl-popup-close-button {
+  font-size: 16px;
+  padding: 4px 8px;
+  color: #6b7280;
+}

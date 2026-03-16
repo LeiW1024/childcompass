@@ -1,0 +1,184 @@
+// prisma/seed.mjs — ES module, run with: node prisma/seed.mjs
+// No ts-node needed, works with any Node version
+// Coordinates are geocoded via Mapbox API from addresses (requires NEXT_PUBLIC_MAPBOX_TOKEN).
+
+import { PrismaClient } from "@prisma/client";
+import { randomUUID } from "crypto";
+
+const prisma = new PrismaClient();
+
+// ── Geocoding helper ─────────────────────────────────────────────────────────
+async function geocodeAddress(address, city) {
+  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  if (!token) return null;
+  const query = [address, city, "Germany"].filter(Boolean).join(", ");
+  try {
+    const res = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?limit=1&access_token=${token}`
+    );
+    const data = await res.json();
+    if (data.features?.[0]) {
+      const [lng, lat] = data.features[0].geometry.coordinates;
+      return { lat, lng };
+    }
+  } catch { /* skip */ }
+  return null;
+}
+
+const providers = [
+  { key:"kita_kinderwelt",     businessName:"Kneipp-Kita Kinderwelt",                           description:"Kneipp-zertifizierter Kindergarten im Wohngebiet Am Huttenplatz. Seit 1986 betreuen wir Kinder von 1 Jahr bis Schuleintritt nach ganzheitlichem, gesundheitsförderndem Konzept.", address:"Am Huttenplatz 4",           city:"Erfurt", phone:"0361 65964-500",  website:"https://tsa.info/kitas/kitas-in-erfurt/kneipp-kindergarten-kinderwelt" },
+  { key:"kita_arche_noah",     businessName:"Ev. Kindergarten Arche Noah",                      description:"Evangelischer Kindergarten in Gispersleben mit christlichem Leitbild. Naturnahe Pädagogik und enge Zusammenarbeit mit den Eltern.",                                                  address:"Bukarester Straße 50",       city:"Erfurt", phone:"0361 216 97 020", website:"https://www.arche-noah-kinder.de" },
+  { key:"kita_drosselberg",    businessName:"Ev. Kinderhaus am Drosselberg",                    description:"Evangelisches Kinderhaus im Südosten Erfurts. Naturnahe Pädagogik mit großem Garten, Waldausflügen und viel Platz für freies Spiel.",                                               address:"Curiestr. 26",               city:"Erfurt", phone:"0361 42 33 667",  website:"https://www.ev-kinderhaus-am-drosselberg.de" },
+  { key:"kita_moritzkindergarten", businessName:"Evangelischer Moritzkindergarten",             description:"Kleiner, familiärer Kindergarten in Erfurt mit individueller Begleitung jedes Kindes und enger Elternpartnerschaft.",                                                               address:"Adolf-Diesterweg-Str. 10",   city:"Erfurt", phone:"0361 211 34 13",  website:"https://www.moritz-kita.de" },
+  { key:"kita_pergamenter",    businessName:"Ev. Pergamenterkindergarten",                      description:"Mitten in der historischen Altstadt gelegen. Kleiner Kindergarten mit großem Herz – urban, lebendig und nah an Erfurts Kulturschätzen.",                                            address:"Pergamentergasse 31",        city:"Erfurt", phone:"0361 562 92 45",  website:null },
+  { key:"kita_lutherkita",     businessName:"Lutherkindertagesstätte Margarete-Wehling-Stiftung", description:"Evangelische Kita mit langer Erfurter Tradition. Musik, Bewegung und Natur prägen unseren Alltag.",                                                                              address:"Eislebener Str. 2",          city:"Erfurt", phone:"0361 566 82 73",  website:null },
+  { key:"turnverein_98",       businessName:"Turnverein 98 Erfurt e.V.",                        description:"Traditioneller Erfurter Turnverein mit breitem Angebot für Kinder: Kinderturnen, Geräteturnen, Rhythmische Sportgymnastik und Eltern-Kind-Turnen.",                                address:"Blankenhainer Straße 26",    city:"Erfurt", phone:null,              website:null },
+  { key:"leichtathletik_erfurt", businessName:"Erfurter Leichtathletik Centrum",                description:"Leichtathletik für Kinder und Jugendliche im Steigerwaldstadion. Laufen, Springen, Werfen – spielerisch und wettkampforientiert.",                                                address:"Friedrich-Ebertstr. 61b",   city:"Erfurt", phone:"0361 345 45 25",  website:null },
+  { key:"ssv_erfurt_nord",     businessName:"SSV Erfurt-Nord e.V.",                             description:"Vielseitiger Sportverein im Norden Erfurts. Mutter-Kind-Turnen, Schwimmen, Rugby und weitere Sportarten für alle Altersgruppen.",                                                  address:"Riethstraße 35",             city:"Erfurt", phone:null,              website:"https://schwimmen-erfurt.de" },
+  { key:"judo_erfurt",         businessName:"Erfurter Judo Club e.V.",                          description:"Judo für Kinder ab 4 Jahren. Wir vermitteln Kampfsport, Respekt, Disziplin und Teamgeist.",                                                                                        address:"Meineckestraße 11b",         city:"Erfurt", phone:"0361 730 350",    website:null },
+  { key:"musikschule_erfurt",  businessName:"Musikschule der Stadt Erfurt",                     description:"Die größte Musikschule Thüringens mit über 2.200 Schülerinnen und Schülern. Früherziehung ab 5 Monaten, Instrumentalunterricht, Tanz und Bühnentanz.",                            address:"Turniergasse 18",            city:"Erfurt", phone:"0361 65 51 505",  website:"https://www.erfurt.de/musikschule" },
+  { key:"tanzschule_tanzrausch", businessName:"Tanzschule Tanzrausch",                          description:"Herzliches Tanzstudio im Herzen Erfurts. Hip Hop Kids, Kindertanz und Ballett für Kinder ab 3 Jahren in kleinen Gruppen.",                                                         address:"Johannesstraße 112",         city:"Erfurt", phone:null,              website:"https://www.tanzschule-tanzrausch.de" },
+  { key:"kulturetage",         businessName:"Kulturetage Erfurt",                               description:"Tanzschule mit riesigem Angebot: Kindertanz, Ballett, Hip Hop, Jazz Dance, Modern Dance, Musical – für Kinder von 3 bis 99 Jahre.",                                               address:"Karlstr. 6",                 city:"Erfurt", phone:null,              website:"https://www.kulturetage-erfurt.de" },
+  { key:"musikschule_saxoton", businessName:"Musikschule Saxoton",                              description:"Private Musikschule in der Erfurter Altstadt. Musikalische Früherziehung, Instrumentalunterricht und Ensemblespiel für Kinder und Jugendliche.",                                   address:"Marbacher Gasse 23",         city:"Erfurt", phone:"0361 73 140 33",  website:null },
+  { key:"delfish",             businessName:"Schwimmschule DELFISH Erfurt",                     description:"Professionelle Kinderschwimmkurse im warmen 31°C-Becken. Kleine Gruppen, ausgebildete Trainer, Seepferdchen-Zertifizierung.",                                                      address:"Haarbergstraße 72",          city:"Erfurt", phone:"0800 217 0000",   website:"https://www.delfish.de/kursorte/erfurt" },
+  { key:"erfurter_ssc",        businessName:"Erfurter Schwimmsportclub e.V.",                   description:"Mit fast 400 Mitgliedern der größte Schwimmverein Erfurts. Schwimmen und Wasserball für alle Altersgruppen ab 4 Jahren.",                                                          address:"Riethstraße 35",             city:"Erfurt", phone:null,              website:"https://erfurterssc.de" },
+  { key:"dlrg_erfurt",         businessName:"DLRG Stadtverband Erfurt e.V.",                    description:"Deutsche Lebens-Rettungs-Gesellschaft in Erfurt. Schwimmkurse und Rettungsschwimmausbildung für Kinder und Jugendliche.",                                                          address:"Hugo-John-Str. 10",          city:"Erfurt", phone:null,              website:"https://erfurt.dlrg.de" },
+];
+
+const listings = [
+  // DAYCARE
+  { providerKey:"kita_kinderwelt",      title:"Kita Kinderwelt – Krippe & Kindergarten",              description:"Kneipp-zertifizierte Kita mit 108 Plätzen. Wir begleiten Kinder von 1 Jahr bis Schuleintritt in gesunder, naturnaher Umgebung. Offene Strukturen, individuelle Förderung.",    category:"DAYCARE",   ageMin:12, ageMax:72,  price:180, pricePer:"MONTH", address:"Am Huttenplatz 4",           city:"Erfurt", schedule:"Mo–Fr 06:30–17:00 Uhr", times:"Ganztag oder Teilzeit",  periods:"Ganzjährig",                      spots:108 },
+  { providerKey:"kita_arche_noah",      title:"Ev. Kindergarten Arche Noah",                          description:"Evangelischer Kindergarten in Gispersleben. Naturnahe Pädagogik, Ausflüge in die Umgebung und enge Zusammenarbeit mit den Eltern.",                                              category:"DAYCARE",   ageMin:12, ageMax:72,  price:165, pricePer:"MONTH", address:"Bukarester Straße 50",       city:"Erfurt", schedule:"Mo–Fr 07:00–17:00 Uhr", times:"Ganztag",                periods:"Ganzjährig",                      spots:75  },
+  { providerKey:"kita_drosselberg",     title:"Ev. Kinderhaus am Drosselberg",                        description:"Ruhig gelegenes Kinderhaus im Süden Erfurts mit großem Garten, Waldausflügen und viel Platz für freies Spiel.",                                                                   category:"DAYCARE",   ageMin:12, ageMax:72,  price:170, pricePer:"MONTH", address:"Curiestr. 26",               city:"Erfurt", schedule:"Mo–Fr 07:00–17:00 Uhr", times:"Ganztag oder Teilzeit",  periods:"Ganzjährig",                      spots:60  },
+  { providerKey:"kita_moritzkindergarten", title:"Evangelischer Moritzkindergarten",                  description:"Kleiner, familiärer Kindergarten in Erfurt-Hochheim mit individueller Begleitung und enger Elternpartnerschaft.",                                                                category:"DAYCARE",   ageMin:24, ageMax:72,  price:155, pricePer:"MONTH", address:"Adolf-Diesterweg-Str. 10",  city:"Erfurt", schedule:"Mo–Fr 07:00–16:30 Uhr", times:"Ganztag",                periods:"Ganzjährig",                      spots:50  },
+  { providerKey:"kita_pergamenter",     title:"Pergamenterkindergarten – Altstadt",                   description:"Mitten in der historischen Altstadt. Kleiner Kindergarten mit großem Herz – urban, lebendig und nah an Erfurts Kulturschätzen.",                                                  category:"DAYCARE",   ageMin:24, ageMax:72,  price:160, pricePer:"MONTH", address:"Pergamentergasse 31",        city:"Erfurt", schedule:"Mo–Fr 07:00–17:00 Uhr", times:"Ganztag oder Teilzeit",  periods:"Ganzjährig",                      spots:40  },
+  { providerKey:"kita_lutherkita",      title:"Lutherkita – Krippe & Kindergarten",                   description:"Evangelische Kita im Norden Erfurts. Musik, Bewegung und Natur prägen unseren Alltag. Offene Gruppenarbeit und individuelle Förderung.",                                         category:"DAYCARE",   ageMin:12, ageMax:72,  price:162, pricePer:"MONTH", address:"Eislebener Str. 2",          city:"Erfurt", schedule:"Mo–Fr 06:30–17:00 Uhr", times:"Ganztag",                periods:"Ganzjährig",                      spots:80  },
+  // SPORTS
+  { providerKey:"turnverein_98",        title:"Kinderturnen & Eltern-Kind-Turnen (ab 1 J.)",          description:"Spielerisches Turnen für die Kleinsten ab 1 Jahr. Wir fördern Koordination, Gleichgewicht und Freude an Bewegung in einer sicheren, fröhlichen Umgebung.",                       category:"SPORTS",    ageMin:12, ageMax:48,  price:25,  pricePer:"MONTH", address:"Blankenhainer Straße 26",    city:"Erfurt", schedule:"Samstag 09:00–10:30 Uhr", times:"Sa 09:00–10:30 Uhr",     periods:"Sep – Jun",                       spots:15  },
+  { providerKey:"turnverein_98",        title:"Geräteturnen Kinder (4–7 Jahre)",                      description:"Einführung ins Geräteturnen an Barren, Boden, Reck und Sprungbock. Spaß und sportliche Grundausbildung im Vordergrund.",                                                         category:"SPORTS",    ageMin:48, ageMax:84,  price:28,  pricePer:"MONTH", address:"Blankenhainer Straße 26",    city:"Erfurt", schedule:"Mi + Fr 15:00–16:30 Uhr", times:"Mi + Fr 15:00–16:30 Uhr", periods:"Sep – Jun",                       spots:12  },
+  { providerKey:"leichtathletik_erfurt", title:"Leichtathletik Kinder – Laufen, Springen, Werfen",   description:"Grundlagentraining im Steigerwaldstadion. Kinder lernen Laufen, Weitsprung, Hochsprung und Ballwurf – spielerisch und mit Wettkampfmöglichkeit.",                                category:"SPORTS",    ageMin:60, ageMax:96,  price:20,  pricePer:"MONTH", address:"Friedrich-Ebertstr. 61b",   city:"Erfurt", schedule:"Di + Do 16:00–17:30 Uhr", times:"Di + Do 16:00–17:30 Uhr", periods:"Ganzjährig",                      spots:20  },
+  { providerKey:"ssv_erfurt_nord",      title:"Mutter-Kind-Turnen (1–3 Jahre)",                       description:"Erste sportliche Schritte gemeinsam mit Mama oder Papa. Spielerische Bewegungsförderung, Gleichgewicht und soziale Kontakte für die Kleinsten.",                                 category:"SPORTS",    ageMin:12, ageMax:36,  price:22,  pricePer:"MONTH", address:"Riethstraße 35",             city:"Erfurt", schedule:"Donnerstag 09:30–10:30 Uhr", times:"Do 09:30–10:30 Uhr",  periods:"Sep – Jun",                       spots:12  },
+  { providerKey:"judo_erfurt",          title:"Kinder-Judo ab 4 Jahren",                              description:"Judo für Kinder – spielerisch und respektvoll. Grundtechniken, Fallschule und die Werte des Judosports: Respekt, Disziplin und Fairness.",                                       category:"SPORTS",    ageMin:48, ageMax:84,  price:18,  pricePer:"MONTH", address:"Meineckestraße 11b",         city:"Erfurt", schedule:"Mo + Mi 17:00–18:00 Uhr", times:"Mo + Mi 17:00–18:00 Uhr", periods:"Ganzjährig",                      spots:16  },
+  // MUSIC & DANCE
+  { providerKey:"musikschule_erfurt",   title:"Baby-Musikgarten (ab 5 Monate)",                       description:"Musikalische Früherziehung für die Allerkleinsten. Durch Lieder, Sprechverse und Bewegungsspiele entdecken Babys gemeinsam mit ihrer Bezugsperson die Welt der Musik.",           category:"MUSIC",     ageMin:5,  ageMax:24,  price:45,  pricePer:"MONTH", address:"Turniergasse 18",            city:"Erfurt", schedule:"Di + Do 09:00–09:45 Uhr", times:"Di + Do 09:00–09:45 Uhr", periods:"Sep – Jul",                       spots:10  },
+  { providerKey:"musikschule_erfurt",   title:"Musikalische Früherziehung (3–6 Jahre)",                description:"Spielerische Einführung in Musik, Rhythmus und Instrumente. Kinder singen, musizieren und bewegen sich – ideale Vorbereitung auf Instrumentalunterricht.",                        category:"MUSIC",     ageMin:36, ageMax:72,  price:52,  pricePer:"MONTH", address:"Turniergasse 18",            city:"Erfurt", schedule:"Mo / Mi / Fr 10:00–10:45", times:"Mo, Mi oder Fr 10:00 Uhr", periods:"Sep – Jul",                       spots:12  },
+  { providerKey:"musikschule_erfurt",   title:"Tanzmäuse – Bühnentanz für Kinder (ab 4)",              description:"Erste Tanzschritte für Kinder ab 4 Jahren. Ballett, Modern Dance und Jazz Dance spielerisch vereint. Jährliche Aufführung auf der Bühne inklusive.",                              category:"MUSIC",     ageMin:48, ageMax:84,  price:58,  pricePer:"MONTH", address:"Turniergasse 18",            city:"Erfurt", schedule:"Samstag 10:00–10:45 Uhr", times:"Sa 10:00–10:45 Uhr",     periods:"Sep – Jul",                       spots:14  },
+  { providerKey:"tanzschule_tanzrausch", title:"Hip Hop Kids (4–8 Jahre)",                            description:"Coole Moves, starke Beats und ganz viel Spaß! Hip Hop für Kinder fördert Rhythmusgefühl, Koordination und Selbstvertrauen energiegeladen.",                                      category:"MUSIC",     ageMin:48, ageMax:96,  price:45,  pricePer:"MONTH", address:"Johannesstraße 112",         city:"Erfurt", schedule:"Montag 16:00–17:00 Uhr",  times:"Mo 16:00–17:00 Uhr",     periods:"Ganzjährig",                      spots:10  },
+  { providerKey:"tanzschule_tanzrausch", title:"Kindertanz & Ballett (3–6 Jahre)",                    description:"Erste tänzerische Schritte für die Kleinsten. Klassische Ballettgrundlagen und freies Tanzen kombiniert – spielerisch, kreativ und mit viel Freude.",                            category:"MUSIC",     ageMin:36, ageMax:72,  price:42,  pricePer:"MONTH", address:"Johannesstraße 112",         city:"Erfurt", schedule:"Mittwoch 15:00–16:00 Uhr", times:"Mi 15:00–16:00 Uhr",    periods:"Ganzjährig",                      spots:10  },
+  { providerKey:"kulturetage",          title:"Kinderballett & Jazz Dance (ab 3)",                    description:"Klassisches Ballett und Jazz Dance in vier professionellen Tanzsälen mit Schwingboden. Künstlerisch und pädagogisch fundierter Unterricht.",                                      category:"MUSIC",     ageMin:36, ageMax:84,  price:48,  pricePer:"MONTH", address:"Karlstr. 6",                 city:"Erfurt", schedule:"Di / Do / Sa – verschiedene Gruppen", times:"Di, Do oder Sa",      periods:"Sep – Jun",                       spots:15  },
+  { providerKey:"kulturetage",          title:"Hip Hop & Breakdance für Kinder (ab 6)",               description:"Streetdance für Kinder ab 6 Jahren. Breakdance, B-Girling, B-Boying und Hip Hop – ausdrucksstarker Tanz mit modernem Flair.",                                                     category:"MUSIC",     ageMin:72, ageMax:144, price:45,  pricePer:"MONTH", address:"Karlstr. 6",                 city:"Erfurt", schedule:"Freitag 16:00–17:30 Uhr",  times:"Fr 16:00–17:30 Uhr",     periods:"Sep – Jun",                       spots:12  },
+  { providerKey:"musikschule_saxoton",  title:"Gitarre & Klavier für Kinder (ab 5)",                  description:"Instrumentalunterricht in kleinen Gruppen oder Einzelstunden. Kinder entdecken Gitarre, Klavier und weitere Instrumente spielerisch und nach individuellem Tempo.",               category:"MUSIC",     ageMin:60, ageMax:120, price:65,  pricePer:"MONTH", address:"Marbacher Gasse 23",         city:"Erfurt", schedule:"Nach Vereinbarung",        times:"Wochentags nach Vereinbarung", periods:"Ganzjährig",                    spots:8   },
+  // SWIMMING
+  { providerKey:"delfish",              title:"Kinderschwimmkurs Wasserfrosch (3–5 J.)",               description:"Wassergewöhnung im warmen 31°C-Becken. Kleine Gruppen max. 8 Kinder, ausgebildete Trainer, sicherer Einstieg mit Treppe. Vorbereitung auf das Seepferdchen.",                    category:"SWIMMING",  ageMin:36, ageMax:60,  price:195, pricePer:"MONTH", address:"Haarbergstraße 72",          city:"Erfurt", schedule:"Samstag 09:00–12:00 Uhr", times:"Sa 09, 10 oder 11 Uhr",  periods:"Ganzjährig, 12 Einheiten",        spots:8   },
+  { providerKey:"delfish",              title:"Seepferdchen-Kurs (5–8 Jahre)",                         description:"Der klassische Schwimmkurs zum Erwerb des Seepferdchens. 12 Einheiten à 45 Minuten, max. 8 Kinder pro Gruppe, professionelle Schwimmlehrer.",                                     category:"SWIMMING",  ageMin:60, ageMax:96,  price:195, pricePer:"MONTH", address:"Haarbergstraße 72",          city:"Erfurt", schedule:"Samstag 09:00–12:00 Uhr", times:"Sa 09, 10 oder 11 Uhr",  periods:"Ganzjährig, 12 Einheiten",        spots:8   },
+  { providerKey:"erfurter_ssc",         title:"Schwimmen für Vorschulkinder (ab 4)",                   description:"Spielerische Wassergewöhnung und erste Schwimmtechniken. Erfahrene Übungsleiter, kleine Gruppen, wettkampffreie Atmosphäre.",                                                     category:"SWIMMING",  ageMin:48, ageMax:72,  price:22,  pricePer:"MONTH", address:"Riethstraße 35",             city:"Erfurt", schedule:"Samstag 09:00–10:00 Uhr", times:"Sa 09:00–10:00 Uhr",     periods:"Sep – Jun",                       spots:10  },
+  { providerKey:"erfurter_ssc",         title:"Nachwuchs-Schwimmen & Wasserball (6–12 J.)",            description:"Schwimmtraining und Wasserball für Kinder von 6–12 Jahren. Erfurts größter Schwimmverein mit fast 400 Mitgliedern und Trainern mit Landeskader-Erfahrung.",                       category:"SWIMMING",  ageMin:72, ageMax:144, price:25,  pricePer:"MONTH", address:"Riethstraße 35",             city:"Erfurt", schedule:"Di + Do 17:00–18:30 Uhr", times:"Di + Do 17:00–18:30 Uhr", periods:"Ganzjährig",                      spots:20  },
+  { providerKey:"dlrg_erfurt",          title:"DLRG Kinderschwimmkurs (5–10 Jahre)",                   description:"Sicheres Schwimmen lernen mit der DLRG. Vom Wassergewöhnung bis zum Jugendschwimmabzeichen Bronze. Zertifizierte Schwimmlehrer.",                                                 category:"SWIMMING",  ageMin:60, ageMax:120, price:80,  pricePer:"MONTH", address:"Hugo-John-Str. 10",          city:"Erfurt", schedule:"Sa 10:00 oder So 11:00 Uhr", times:"Sa 10:00 oder So 11:00", periods:"Ganzjährig",                      spots:10  },
+];
+
+async function main() {
+  console.log("🌱 Seeding ChildCompass with real Erfurt activities...\n");
+  let createdProviders = 0;
+  let createdListings  = 0;
+  const providerIdMap  = {};
+
+  for (const p of providers) {
+    const existing = await prisma.providerProfile.findFirst({
+      where: { businessName: p.businessName },
+    });
+    if (existing) {
+      providerIdMap[p.key] = existing.id;
+      console.log(`  ⏭  Provider exists: ${p.businessName}`);
+      continue;
+    }
+    const created = await prisma.providerProfile.create({
+      data: {
+        businessName: p.businessName,
+        description:  p.description,
+        address:      p.address,
+        city:         p.city,
+        phone:        p.phone ?? undefined,
+        website:      p.website ?? undefined,
+        isClaimed:    false,
+        isVerified:   false,
+        claimToken:   randomUUID(),
+      },
+    });
+    providerIdMap[p.key] = created.id;
+    createdProviders++;
+    console.log(`  ✅ Provider: ${p.businessName}`);
+  }
+
+  console.log(`\n  Creating listings...\n`);
+
+  for (const l of listings) {
+    const providerId = providerIdMap[l.providerKey];
+    if (!providerId) {
+      console.warn(`  ⚠️  No provider for key: ${l.providerKey}`);
+      continue;
+    }
+    const existing = await prisma.listing.findFirst({
+      where: { title: l.title, providerProfileId: providerId },
+    });
+    if (existing) {
+      console.log(`  ⏭  Listing exists: ${l.title}`);
+      continue;
+    }
+    await prisma.listing.create({
+      data: {
+        providerProfileId: providerId,
+        title:           l.title,
+        description:     l.description,
+        category:        l.category,
+        ageMinMonths:    l.ageMin,
+        ageMaxMonths:    l.ageMax,
+        price:           l.price,
+        pricePer:        l.pricePer,
+        address:         l.address,
+        city:            l.city,
+        scheduleNotes:   l.schedule,
+        availableTimes:  l.times,
+        datePeriods:     l.periods,
+        maxParticipants: l.spots,
+        isPublished:     true,
+        isAdminSeeded:   true,
+      },
+    });
+    createdListings++;
+    console.log(`  ✅ [${l.category.padEnd(10)}] ${l.title}`);
+  }
+
+  // ── Geocode all listings that lack coordinates ──────────────────────────────
+  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  if (token) {
+    console.log(`\n  Geocoding listings via Mapbox...\n`);
+    const toGeocode = await prisma.listing.findMany({
+      where: { latitude: null, OR: [{ address: { not: null } }, { city: { not: null } }] },
+    });
+    let geocoded = 0;
+    for (const listing of toGeocode) {
+      const coords = await geocodeAddress(listing.address ?? "", listing.city ?? "");
+      if (coords) {
+        await prisma.listing.update({
+          where: { id: listing.id },
+          data: { latitude: coords.lat, longitude: coords.lng },
+        });
+        geocoded++;
+        console.log(`  📍 ${listing.title}`);
+      }
+      await new Promise(r => setTimeout(r, 120)); // rate-limit
+    }
+    console.log(`\n  Geocoded ${geocoded}/${toGeocode.length} listings.`);
+  } else {
+    console.log(`\n  ⚠️  NEXT_PUBLIC_MAPBOX_TOKEN not set — skipping geocoding.`);
+    console.log(`     Run POST /api/admin/geocode after starting the app to add coordinates.\n`);
+  }
+
+  console.log(`\n────────────────────────────────────`);
+  console.log(`✅ Done! Providers: ${createdProviders}, Listings: ${createdListings}`);
+  console.log(`────────────────────────────────────\n`);
+}
+
+main()
+  .catch(e => { console.error("\n❌ Seed failed:", e.message, "\n"); process.exit(1); })
+  .finally(() => prisma.$disconnect());

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "mcp__Claude_Preview__preview_start",
+      "WebFetch(domain:www.latlong.net)",
+      "WebFetch(domain:nominatim.openstreetmap.org)",
+      "WebFetch(domain:geocode.maps.co)"
+    ]
+  }
+}

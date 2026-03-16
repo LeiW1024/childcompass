@@ -1,0 +1,41 @@
+// prisma/fix-coords.mjs
+// Run ONCE after seeding to fix GPS coordinates for existing DB rows:
+//   node prisma/fix-coords.mjs
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
+
+const COORDS = {
+  "Am Huttenplatz 4":          [50.9934, 11.0148],  // 99086 NW Erfurt
+  "Bukarester Straße 50":      [51.0128, 10.9965],  // 99091 Moskauer Platz (NORTH)
+  "Curiestr. 26":              [50.9618, 11.0612],  // 99097 Drosselberg SE
+  "Adolf-Diesterweg-Str. 10":  [50.9721, 11.0018],  // 99092 Andreasvorstadt
+  "Pergamentergasse 31":       [50.9788, 11.0282],  // 99084 Altstadt
+  "Eislebener Str. 2":         [50.9948, 11.0072],  // 99086 NW Erfurt
+  "Blankenhainer Straße 26":   [50.9558, 11.0688],  // 99099 Südost
+  "Friedrich-Ebertstr. 61b":  [50.9697, 11.0597],  // Steigerwaldstadion
+  "Riethstraße 35":            [51.0018, 11.0195],  // 99089 Nordpark (NORTH)
+  "Meineckestraße 11b":        [50.9832, 11.0108],  // 99082 West
+  "Turniergasse 18":           [50.9787, 11.0266],  // 99084 Altstadt (Google Maps verified)
+  "Johannesstraße 112":        [50.9808, 11.0188],  // 99084 West inner
+  "Karlstr. 6":                [50.9998, 11.0282],  // 99089 Andreasvorstadt north
+  "Marbacher Gasse 23":        [50.9791, 11.0282],  // 99084 Altstadt
+  "Haarbergstraße 72":         [50.9473, 11.0855],  // 99097 SE (Google Maps exact)
+  "Arnstädter Straße 28":      [50.9628, 11.0338],  // 99096 South
+  "Hugo-John-Str. 10":         [50.9942, 11.0098],  // 99086 NW
+};
+
+async function main() {
+  console.log("🗺️  Updating GPS coordinates for all seeded listings…\n");
+  let total = 0;
+  for (const [address, [latitude, longitude]] of Object.entries(COORDS)) {
+    const r = await prisma.listing.updateMany({ where: { address }, data: { latitude, longitude } });
+    const icon = r.count > 0 ? "✅" : "⏭ ";
+    console.log(`  ${icon} (${String(r.count).padStart(2)}) ${address}`);
+    total += r.count;
+  }
+  console.log(`\n✅ Updated ${total} listing(s) total.`);
+}
+
+main()
+  .catch(e => { console.error("❌", e.message); process.exit(1); })
+  .finally(() => prisma.$disconnect());

@@ -1,0 +1,177 @@
+// prisma/schema.prisma — ChildCompass MVP + Admin/Scraper
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────
+// Users / Profiles
+// ─────────────────────────────────────────────
+
+model Profile {
+  id          String      @id @default(cuid())
+  supabaseId  String      @unique @map("supabase_id")
+  email       String      @unique
+  fullName    String?     @map("full_name")
+  avatarUrl   String?     @map("avatar_url")
+  role        UserRole    @default(PARENT)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  children    Child[]
+  bookings    Booking[]
+  provider    ProviderProfile?
+
+  @@map("profiles")
+}
+
+enum UserRole {
+  PARENT
+  PROVIDER
+  ADMIN
+}
+
+// ─────────────────────────────────────────────
+// Provider Profile
+// Can be: (a) created by a real user signup, OR
+//         (b) pre-seeded by admin scraper (profileId = null, isClaimed = false)
+// ─────────────────────────────────────────────
+
+model ProviderProfile {
+  id           String    @id @default(cuid())
+  profileId    String?   @unique @map("profile_id")   // null = unclaimed
+  businessName String    @map("business_name")
+  description  String?
+  address      String?
+  city         String?
+  phone        String?
+  website      String?
+  logoUrl      String?   @map("logo_url")
+  isVerified   Boolean   @default(false) @map("is_verified")
+  isClaimed    Boolean   @default(false) @map("is_claimed")  // true = provider signed up
+  claimToken   String?   @unique @map("claim_token")         // secret token for claim link
+  sourceUrl    String?   @map("source_url")                  // where data was scraped from
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  profile      Profile?  @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  listings     Listing[]
+
+  @@map("provider_profiles")
+}
+
+// ─────────────────────────────────────────────
+// Children
+// ─────────────────────────────────────────────
+
+model Child {
+  id          String    @id @default(cuid())
+  parentId    String    @map("parent_id")
+  firstName   String    @map("first_name")
+  lastName    String?   @map("last_name")
+  dateOfBirth DateTime  @map("date_of_birth")
+  avatarUrl   String?   @map("avatar_url")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  parent      Profile   @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  bookings    Booking[]
+
+  @@map("children")
+}
+
+// ─────────────────────────────────────────────
+// Listings
+// ─────────────────────────────────────────────
+
+model Listing {
+  id                String          @id @default(cuid())
+  providerProfileId String          @map("provider_profile_id")
+  title             String
+  description       String
+  category          ListingCategory
+  ageMinMonths      Int             @map("age_min_months")
+  ageMaxMonths      Int             @map("age_max_months")
+  price             Decimal         @db.Decimal(10, 2)
+  pricePer          PricePer        @map("price_per")
+  address           String?
+  city              String?
+  scheduleNotes     String?         @map("schedule_notes")
+  spotsTotal        Int?            @map("spots_total")
+  imageUrl          String?         @map("image_url")
+  isPublished       Boolean         @default(false) @map("is_published")
+  isAdminSeeded     Boolean         @default(false) @map("is_admin_seeded")
+  latitude          Float?          // for map display
+  longitude         Float?          // for map display
+  maxParticipants   Int?            @map("max_participants")
+  datePeriods       String?         @map("date_periods")  // e.g. "Sep – Jun"
+  availableTimes    String?         @map("available_times") // e.g. "Mon 9–11am, Wed 2–4pm"
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  providerProfile   ProviderProfile @relation(fields: [providerProfileId], references: [id], onDelete: Cascade)
+  bookings          Booking[]
+
+  @@index([category])
+  @@index([isPublished])
+  @@index([ageMinMonths, ageMaxMonths])
+  @@map("listings")
+}
+
+enum ListingCategory {
+  DAYCARE
+  PLAYGROUP
+  SPORTS
+  ARTS_CRAFTS
+  MUSIC
+  LANGUAGE
+  SWIMMING
+  NATURE
+  EDUCATION
+  OTHER
+}
+
+enum PricePer {
+  SESSION
+  MONTH
+  WEEK
+  YEAR
+}
+
+// ─────────────────────────────────────────────
+// Bookings
+// ─────────────────────────────────────────────
+
+model Booking {
+  id          String        @id @default(cuid())
+  listingId   String        @map("listing_id")
+  parentId    String        @map("parent_id")
+  childId     String        @map("child_id")
+  status      BookingStatus @default(REQUESTED)
+  message     String?
+  respondedAt DateTime?     @map("responded_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  listing     Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  parent      Profile       @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  child       Child         @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, childId])
+  @@index([parentId, status])
+  @@index([listingId, status])
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  REQUESTED
+  CONFIRMED
+  DECLINED
+  CANCELLED
+}
