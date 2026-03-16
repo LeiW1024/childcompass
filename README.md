@@ -20,40 +20,89 @@
 | `PROVIDER` | Publish listings, manage bookings |
 | `ADMIN` | Full access (future) |
 
-## Stack
+## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 14 (App Router) |
-| Auth + Storage | Supabase |
-| ORM | Prisma 5 |
-| Database | PostgreSQL (via Supabase) |
-| Styling | Tailwind CSS + CSS variables |
+### Frontend
+| Layer | Technology | Version |
+|---|---|---|
+| Framework | Next.js (App Router) | 14.2.5 |
+| Language | TypeScript | ^5 |
+| Styling | Tailwind CSS + CSS Variables | 3.4.1 |
+| UI Components | Radix UI (Dialog, Dropdown, Select, Toast, Avatar, Tabs, Label, Slot) | @radix-ui/react-* |
+| Maps | Mapbox GL JS | 2.15.0 |
+| Forms | react-hook-form + @hookform/resolvers + Zod | 7.52.1 / 3.9.0 / 3.23.8 |
+| State Management | Zustand | 4.5.4 |
+| Icons | Lucide React | 0.408.0 |
+| Charts | Recharts | 2.12.7 |
+| Theme | next-themes | 0.3.0 |
+| Utilities | clsx, tailwind-merge, date-fns | 2.1.1 / 2.4.0 / 3.6.0 |
+| Font | Geist Sans + Geist Mono (CSS vars) + Plus Jakarta Sans | — |
 
-## Project Structure
+### Backend
+| Layer | Technology | Version |
+|---|---|---|
+| Runtime | Node.js via Next.js API Routes | — |
+| Auth | Supabase Auth (@supabase/supabase-js + @supabase/ssr) | ^2.43.5 / ^0.4.0 |
+| ORM | Prisma | 5.16.1 |
+| Database | PostgreSQL (hosted on Supabase) | — |
+| Connection Pooling | PgBouncer (via Supabase Transaction Pooler) | — |
+| Admin Scraper | Anthropic Claude API (optional) | — |
+
+---
+
+## Folder Structure
 
 ```
-app/
-├── page.tsx                        # Landing page
-├── listings/
-│   ├── page.tsx                    # Searchable directory (filter by age + category)
-│   └── [id]/page.tsx               # Listing detail + booking CTA
-├── dashboard/
-│   ├── page.tsx                    # Smart redirect → parent or provider
-│   ├── parent/page.tsx             # Parent: booking overview
-│   └── provider/
-│       ├── page.tsx                # Provider: listings + pending requests
-│       ├── listings/               # CRUD for listings
-│       └── bookings/               # Respond to booking requests
-├── auth/
-│   ├── login/                      # Email + Google login
-│   └── register/                   # Role selector + signup
-├── api/
-│   ├── listings/                   # GET (public) / POST / PATCH / DELETE
-│   └── bookings/                   # POST (create) / PATCH (update status)
-prisma/
-└── schema.prisma                   # Profile · ProviderProfile · Child · Listing · Booking
-```
+childcompass/
+├── app/
+│   ├── layout.tsx                    # Root layout, metadata, LangProvider
+│   ├── globals.css                   # Design system tokens + Tailwind base
+│   ├── page.tsx                      # Landing page
+│   ├── auth/login|register|error/    # Auth pages
+│   ├── listings/                     # Directory page + detail page
+│   │   ├── page.tsx
+│   │   ├── ListingsClient.tsx        # Client-side filter + map logic
+│   │   ├── MapPanel.tsx / MapInner.tsx
+│   │   └── [id]/page.tsx
+│   ├── dashboard/
+│   │   ├── page.tsx                  # Smart redirect (parent vs provider)
+│   │   ├── parent/                   # Bookings + children tabs
+│   │   └── provider/                 # Listings + booking requests
+│   ├── api/                          # All route handlers
+│   │   ├── auth/callback/route.ts
+│   │   ├── listings/
+│   │   ├── bookings/
+│   │   ├── children/
+│   │   ├── providers/
+│   │   ├── claim/
+│   │   └── admin/
+│   └── claim/[token]/page.tsx
+├── components/
+│   ├── layout/Navbar.tsx + NavbarClient.tsx + Footer.tsx
+│   ├── forms/LoginForm.tsx + RegisterForm.tsx + AuthPageWrapper.tsx
+│   ├── ui/LanguageSwitcher.tsx + SignOutButton.tsx + [Radix wrappers]
+│   ├── HomeContent.tsx
+│   └── BookingModal.tsx
+├── lib/
+│   ├── prisma/client.ts              # Singleton Prisma instance
+│   ├── prisma/repositories.ts        # Query builders (profileRepo, listingRepo, etc.)
+│   ├── prisma/getOrCreateProfile.ts  # Auth → DB profile sync
+│   ├── supabase/client.ts            # Browser-side client
+│   ├── supabase/server.ts            # Server + admin clients
+│   ├── supabase/middleware.ts        # Session refresh
+│   └── utils/cn.ts + dates.ts
+├── types/
+│   ├── index.ts                      # All enums, labels, icons, color maps
+│   └── supabase.ts                   # Auto-generated types
+├── prisma/
+│   ├── schema.prisma
+│   ├── seed.mjs                      # 17 providers + 32 listings
+│   ├── fix-coords.mjs                # Coordinate correction
+│   └── migrations/
+├── middleware.ts                     # Route protection
+├── next.config.mjs
+├── tailwind.config.ts
+└── .env.example
 
 ## Setup
 
