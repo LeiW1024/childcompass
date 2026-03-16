@@ -103,6 +103,7 @@ childcompass/
 ├── next.config.mjs
 ├── tailwind.config.ts
 └── .env.example
+```
 
 ## Setup
 
