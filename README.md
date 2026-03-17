@@ -1,6 +1,10 @@
-# ChildCompass
+## Project Overview
 
-> Discover trusted childcare activities for your child — ages 0 to 6.
+**ChildCompass** is a childcare and kids activity marketplace for parents in Erfurt, Germany. Children ages 0–6. Parents discover, filter, and book trusted activities. Providers publish listings and manage booking requests. Admins seed provider data via scraping tools.
+
+Built entirely through conversational AI development with Claude using a **vertical-slice approach** — one complete feature at a time.
+
+---
 
 ## MVP Features
 

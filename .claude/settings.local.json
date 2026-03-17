@@ -5,7 +5,12 @@
       "mcp__Claude_Preview__preview_start",
       "WebFetch(domain:www.latlong.net)",
       "WebFetch(domain:nominatim.openstreetmap.org)",
-      "WebFetch(domain:geocode.maps.co)"
+      "WebFetch(domain:geocode.maps.co)",
+      "Bash(find /Users/macbookpro/Documents/claude/childcompass/app/dashboard -type f -name *.tsx -o -name *.ts)",
+      "Bash(npm install:*)",
+      "Bash(npx jest:*)",
+      "Bash(npx ts-jest:*)",
+      "Bash(npm -v)"
     ]
   }
 }
