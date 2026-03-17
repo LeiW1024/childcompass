@@ -18,8 +18,8 @@ jobs:
     - name: Set up environment variables
       run: |
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> $GITHUB_ENV
-          echo "SUPABASE_API_KEY=${{ secrets.SUPABASE_API_KEY }}" >> $GITHUB_ENV
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }} >> $GITHUB_ENV
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }} >> $GITHUB_ENV
     - name: Install deps
       run: npm ci
     - name: Build
