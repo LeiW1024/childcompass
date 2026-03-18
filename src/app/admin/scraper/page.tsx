@@ -51,9 +51,9 @@ export default function ScraperPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Scraping failed");
-      setResults(data.providers);
+      setResults(data.data.providers);
       // Select all by default
-      setSelected(new Set(data.providers.map((_: any, i: number) => i)));
+      setSelected(new Set(data.data.providers.map((_: any, i: number) => i)));
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -81,7 +81,7 @@ export default function ScraperPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Import failed");
-      setImportSuccess(data.imported);
+      setImportSuccess(data.data.imported);
     } catch (err: any) {
       setError(err.message);
     } finally {

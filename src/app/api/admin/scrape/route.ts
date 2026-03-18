@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const { category, ageGroup, city = "Erfurt" } = await request.json();
 
     if (!process.env.ANTHROPIC_API_KEY) {
-      return NextResponse.json({ error: "ANTHROPIC_API_KEY not set in .env" }, { status: 500 });
+      return NextResponse.json({ data: null, error: "ANTHROPIC_API_KEY not configured" }, { status: 500 });
     }
 
     const categoryDE = CATEGORY_PROMPTS[category] ?? category;
@@ -67,8 +67,9 @@ Example format:
     });
 
     if (!response.ok) {
-      const err = await response.text();
-      return NextResponse.json({ error: `Claude API error: ${err}` }, { status: 500 });
+      const errText = await response.text();
+      console.error("[admin/scrape] Claude API error:", errText);
+      return NextResponse.json({ data: null, error: "Claude API request failed" }, { status: 500 });
     }
 
     const data = await response.json();
@@ -90,14 +91,13 @@ Example format:
         throw new Error("No JSON array found in response");
       }
     } catch (parseErr) {
-      return NextResponse.json({
-        error: "Could not parse Claude response as JSON",
-        rawResponse: fullText.slice(0, 500),
-      }, { status: 422 });
+      console.error("[admin/scrape] Parse error, raw:", fullText.slice(0, 500));
+      return NextResponse.json({ data: null, error: "Could not parse Claude response as JSON" }, { status: 422 });
     }
 
-    return NextResponse.json({ providers, count: providers.length });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ data: { providers, count: providers.length }, error: null });
+  } catch (err) {
+    console.error("[admin/scrape]", err);
+    return NextResponse.json({ data: null, error: "Internal server error" }, { status: 500 });
   }
 }

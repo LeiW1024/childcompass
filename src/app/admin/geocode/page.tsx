@@ -13,7 +13,7 @@ export default function GeocodePage() {
     const data = await res.json();
     setLoading(false);
     if (!res.ok) { setError(data.error); return; }
-    setResult(data);
+    setResult(data.data);
   }
 
   return (

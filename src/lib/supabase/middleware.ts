@@ -32,11 +32,30 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Admin: protect with env password (simple, no DB lookup needed)
+  // Admin: protect with HMAC token (cookie) or raw key (header)
   if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
-    const adminKey = request.headers.get("x-admin-key") ||
-      request.cookies.get("admin_key")?.value;
-    if (adminKey !== process.env.ADMIN_SECRET_KEY) {
+    const secret = process.env.ADMIN_SECRET_KEY ?? "";
+    const headerKey = request.headers.get("x-admin-key");
+    const cookieToken = request.cookies.get("admin_key")?.value;
+
+    let authenticated = false;
+    if (secret) {
+      // Compute expected HMAC token using Web Crypto API (Edge-compatible)
+      const encoder = new TextEncoder();
+      const key = await globalThis.crypto.subtle.importKey(
+        "raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
+      );
+      const sig = await globalThis.crypto.subtle.sign("HMAC", key, encoder.encode("admin-session"));
+      const expectedToken = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, "0")).join("");
+
+      if (cookieToken && cookieToken === expectedToken) {
+        authenticated = true;
+      } else if (headerKey && headerKey === secret) {
+        authenticated = true;
+      }
+    }
+
+    if (!authenticated) {
       if (pathname === "/admin/login") return supabaseResponse;
       const url = request.nextUrl.clone();
       url.pathname = "/admin/login";

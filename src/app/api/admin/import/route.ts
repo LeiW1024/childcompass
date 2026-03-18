@@ -6,7 +6,7 @@ import crypto from "crypto";
 export async function POST(request: Request) {
   try {
     const { providers } = await request.json();
-    if (!providers?.length) return NextResponse.json({ error: "No providers provided" }, { status: 400 });
+    if (!providers?.length) return NextResponse.json({ data: null, error: "No providers provided" }, { status: 400 });
 
     let imported = 0;
 
@@ -51,9 +51,9 @@ export async function POST(request: Request) {
       imported++;
     }
 
-    return NextResponse.json({ imported });
-  } catch (err: any) {
+    return NextResponse.json({ data: { imported }, error: null });
+  } catch (err) {
     console.error("[admin/import]", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ data: null, error: "Internal server error" }, { status: 500 });
   }
 }

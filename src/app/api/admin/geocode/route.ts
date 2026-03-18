@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma/client";
 export async function POST() {
   try {
     const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-    if (!token) return NextResponse.json({ error: "NEXT_PUBLIC_MAPBOX_TOKEN not set" }, { status: 500 });
+    if (!token) return NextResponse.json({ data: null, error: "Mapbox token not configured" }, { status: 500 });
 
     const listings = await prisma.listing.findMany({
       where: { latitude: null, OR: [{ address: { not: null } }, { city: { not: null } }] },
@@ -29,8 +29,9 @@ export async function POST() {
       } catch { /* skip */ }
       await new Promise(r => setTimeout(r, 120));
     }
-    return NextResponse.json({ geocoded, total: listings.length });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ data: { geocoded, total: listings.length }, error: null });
+  } catch (err) {
+    console.error("[admin/geocode]", err);
+    return NextResponse.json({ data: null, error: "Internal server error" }, { status: 500 });
   }
 }
