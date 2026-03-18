@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
     const profile = await getOrCreateProfile(user.id, user.email ?? "", user.user_metadata);
     const bookings = await prisma.booking.findMany({
       where: { parentId: profile.id },
@@ -18,9 +18,9 @@ export async function GET() {
         child: true,
       },
     });
-    return NextResponse.json({ data: bookings });
+    return NextResponse.json({ data: bookings, error: null });
   } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ data: null, error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -28,15 +28,25 @@ export async function POST(request: Request) {
   try {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
+    if (!user) return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
     const profile = await getOrCreateProfile(user.id, user.email ?? "", user.user_metadata);
 
     const body = await request.json().catch(() => null);
-    if (!body) return NextResponse.json({ error: "Ungültige Anfrage" }, { status: 400 });
+    if (!body) return NextResponse.json({ data: null, error: "Invalid request" }, { status: 400 });
 
     const { listingId, childId, message } = body;
     if (!listingId || !childId)
-      return NextResponse.json({ error: "listingId and childId required" }, { status: 400 });
+      return NextResponse.json({ data: null, error: "listingId and childId required" }, { status: 400 });
+
+    // Verify listing exists and is published
+    const listing = await prisma.listing.findUnique({ where: { id: listingId } });
+    if (!listing || !listing.isPublished)
+      return NextResponse.json({ data: null, error: "Listing not found or not available" }, { status: 404 });
+
+    // Verify child belongs to the authenticated parent
+    const child = await prisma.child.findFirst({ where: { id: childId, parentId: profile.id } });
+    if (!child)
+      return NextResponse.json({ data: null, error: "Child not found" }, { status: 404 });
 
     const booking = await prisma.booking.create({
       data: {
@@ -46,10 +56,10 @@ export async function POST(request: Request) {
         child:   { connect: { id: childId } },
       },
     });
-    return NextResponse.json({ data: booking }, { status: 201 });
+    return NextResponse.json({ data: booking, error: null }, { status: 201 });
   } catch (err: any) {
     if (err.code === "P2002")
-      return NextResponse.json({ error: "Buchung für dieses Kind existiert bereits" }, { status: 409 });
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+      return NextResponse.json({ data: null, error: "Booking already exists for this child" }, { status: 409 });
+    return NextResponse.json({ data: null, error: "Internal server error" }, { status: 500 });
   }
 }

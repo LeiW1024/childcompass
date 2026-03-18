@@ -441,9 +441,11 @@ export default function ParentDashboardClient({
     }
   }
 
-  function handleDeleteChild(id: string) {
-    fetch(`/api/children/${id}`, { method: "DELETE" });
-    setChildren(prev => prev.filter(c => c.id !== id));
+  async function handleDeleteChild(id: string) {
+    const res = await fetch(`/api/children/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setChildren(prev => prev.filter(c => c.id !== id));
+    }
   }
 
   const tabBtn = (active: boolean) => ({
