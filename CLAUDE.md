@@ -320,6 +320,41 @@ return NextResponse.json({ data: null, error: "msg" }) // error
 
 ---
 
+## Coding Requirements
+
+Standards enforced across the codebase, discovered during systematic code review.
+
+### Security
+- **No mass assignment**: Every PATCH/PUT endpoint must define an `ALLOWED_FIELDS` allowlist and only copy those fields from the request body
+- **Ownership verification**: Every mutating endpoint (PATCH/DELETE) must verify the authenticated user owns the target resource before modifying it
+- **No error leaks**: Never expose `err.message` or stack traces to clients — log server-side with `console.error("[ROUTE]", err)`, return generic `"Internal server error"`
+- **XSS prevention**: Never use `innerHTML` with user-generated content — use `textContent` or escape with `escapeHtml()`
+- **Open redirect prevention**: Validate redirect URLs start with `/` and not `//`
+- **Admin auth**: Store HMAC-derived token in httpOnly cookie, never the raw secret key
+- **Timing-safe comparison**: Use `crypto.timingSafeEqual` for secret comparison
+
+### API Routes
+- **Response shape**: All routes return `{ data, error }` — success: `{ data: <payload>, error: null }`, error: `{ data: null, error: "message" }`
+- **Error handling**: Wrap handler body in try-catch, log with route identifier, return 500 with generic message
+- **Validation**: Check required fields exist, verify related resources (e.g. listing exists and is published before creating booking, child belongs to parent)
+- **Authorization**: Repositories are raw CRUD — authorization is always the route handler's responsibility
+
+### Components
+- **Server-first**: Default to Server Components; only add `"use client"` for state, effects, or browser APIs
+- **Suspense boundaries**: Wrap any component using `useSearchParams()` in `<Suspense>`
+- **Hybrid pattern**: Server shell fetches data and passes props to client children (e.g. `Navbar` → `NavbarClient`)
+
+### TypeScript
+- **No unnecessary `any`**: Use proper types or `unknown` with narrowing
+- **Type-safe translations**: Use `LabelKey` union type with `t()` function
+- **Clean imports**: Remove unused imports, props, and variables
+
+### Prisma
+- **Never use empty `update: {}`** in upserts — always include `updatedAt: new Date()`
+- **Repository pattern**: All queries go through `lib/prisma/repositories.ts`
+
+---
+
 ## MVP Scope (What's NOT included)
 
 - Payment processing (bookings are requests only, not transactions)
