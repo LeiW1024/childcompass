@@ -7,15 +7,15 @@ export async function POST(request: Request) {
   try {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "You must be signed in" }, { status: 401 });
+    if (!user) return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
 
     const { token } = await request.json();
-    if (!token) return NextResponse.json({ error: "Token required" }, { status: 400 });
+    if (!token) return NextResponse.json({ data: null, error: "Token required" }, { status: 400 });
 
     // Find the unclaimed provider
     const provider = await prisma.providerProfile.findUnique({ where: { claimToken: token } });
-    if (!provider) return NextResponse.json({ error: "Invalid claim token" }, { status: 404 });
-    if (provider.isClaimed) return NextResponse.json({ error: "Already claimed" }, { status: 409 });
+    if (!provider) return NextResponse.json({ data: null, error: "Invalid claim token" }, { status: 404 });
+    if (provider.isClaimed) return NextResponse.json({ data: null, error: "Already claimed" }, { status: 409 });
 
     // Find or create the user's profile
     let profile = await prisma.profile.findUnique({ where: { supabaseId: user.id } });
@@ -30,15 +30,16 @@ export async function POST(request: Request) {
       });
     } else {
       // Upgrade role to PROVIDER if needed
-      await prisma.profile.update({ where: { id: profile.id }, data: { role: "PROVIDER" } });
+      await prisma.profile.update({
+        where: { id: profile.id },
+        data: { role: "PROVIDER", updatedAt: new Date() },
+      });
     }
 
-    // Check this user doesn't already have a provider profile
-    if (profile.id) {
-      const existing = await prisma.providerProfile.findUnique({ where: { profileId: profile.id } });
-      if (existing && existing.id !== provider.id) {
-        return NextResponse.json({ error: "You already have a provider profile" }, { status: 409 });
-      }
+    // Check this user doesn't already have a different provider profile
+    const existing = await prisma.providerProfile.findUnique({ where: { profileId: profile.id } });
+    if (existing && existing.id !== provider.id) {
+      return NextResponse.json({ data: null, error: "You already have a provider profile" }, { status: 409 });
     }
 
     // Claim: link provider profile to user
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
         profileId: profile.id,
         isClaimed: true,
         claimToken: null, // invalidate token after use
+        updatedAt: new Date(),
       },
     });
 
@@ -57,8 +59,9 @@ export async function POST(request: Request) {
       data: { isPublished: true },
     });
 
-    return NextResponse.json({ ok: true });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ data: { claimed: true }, error: null });
+  } catch (err) {
+    console.error("[POST /api/claim]", err);
+    return NextResponse.json({ data: null, error: "Internal server error" }, { status: 500 });
   }
 }

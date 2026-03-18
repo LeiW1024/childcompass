@@ -27,7 +27,6 @@ export default async function ProviderDashboardPage() {
   const pending   = bookings.filter(b => b.status === "REQUESTED");
   const confirmed = bookings.filter(b => b.status === "CONFIRMED");
   const published = listings.filter(l => l.isPublished);
-  const totalViews = listings.reduce((s, l) => s + (l._count?.bookings ?? 0), 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -135,8 +134,8 @@ export default async function ProviderDashboardPage() {
                     {/* Action buttons for pending */}
                     {isPending && (
                       <div className="flex gap-2 shrink-0">
-                        <BookingAction bookingId={b.id} action="CONFIRMED" label="Accept" />
-                        <BookingAction bookingId={b.id} action="DECLINED" label="Decline" variant="danger" />
+                        <BookingActionButton bookingId={b.id} action="CONFIRMED" label="Accept" />
+                        <BookingActionButton bookingId={b.id} action="DECLINED" label="Decline" variant="danger" />
                       </div>
                     )}
                   </div>
@@ -215,21 +214,5 @@ export default async function ProviderDashboardPage() {
   );
 }
 
-// Inline server action component for accept/decline
-function BookingAction({ bookingId, action, label, variant = "primary" }: {
-  bookingId: string; action: string; label: string; variant?: string;
-}) {
-  return (
-    <form action={`/api/bookings/${bookingId}`} method="POST">
-      <input type="hidden" name="status" value={action} />
-      <button type="submit"
-        className={`text-xs font-extrabold px-3 py-1.5 rounded-xl transition-all hover:scale-105 ${
-          variant === "danger"
-            ? "bg-red-50 text-red-600 border border-red-200 hover:bg-red-100"
-            : "bg-green-50 text-green-700 border border-green-200 hover:bg-green-100"
-        }`}>
-        {label}
-      </button>
-    </form>
-  );
-}
+// Client component for accept/decline booking actions
+import BookingActionButton from "./BookingActionButton";
