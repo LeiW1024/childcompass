@@ -25,11 +25,12 @@ export default function LoginForm() {
     setLoading(true); setError(null);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      setError(de ? "E-Mail oder Passwort falsch." : error.message);
+      setError(de ? "E-Mail oder Passwort falsch." : "Invalid email or password.");
       setLoading(false);
       return;
     }
-    const next = searchParams.get("next") || "/dashboard";
+    const rawNext = searchParams.get("next") || "/dashboard";
+    const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/dashboard";
     router.push(next);
     router.refresh();
   }

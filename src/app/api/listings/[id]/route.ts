@@ -29,7 +29,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
     // Allowlist fields to prevent mass assignment
     const body = await request.json();
-    const safeData: Record<string, any> = {};
+    const safeData: Record<string, unknown> = {};
     for (const field of ALLOWED_FIELDS) {
       if (field in body) safeData[field] = body[field];
     }
@@ -37,6 +37,7 @@ export async function PATCH(request: Request, { params }: Params) {
     const listing = await listingRepo.update(params.id, safeData);
     return NextResponse.json({ data: listing, error: null });
   } catch (err) {
+    console.error("[/api/listings/id]", err);
     return NextResponse.json({ data: null, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -59,6 +60,7 @@ export async function DELETE(_req: Request, { params }: Params) {
     await listingRepo.delete(params.id);
     return NextResponse.json({ data: null, error: null });
   } catch (err) {
+    console.error("[/api/listings/id]", err);
     return NextResponse.json({ data: null, error: "Internal server error" }, { status: 500 });
   }
 }

@@ -80,8 +80,8 @@ export default function BookingModal({ listing, lang, onClose }: Props) {
       setChildren(prev => [...prev, data]);
       setSelectedChild(data);
       setStep("confirm");
-    } catch (e: any) {
-      setError(e.message || (de ? "Fehler beim Anlegen des Profils." : "Error creating profile."));
+    } catch {
+      setError(de ? "Fehler beim Anlegen des Profils." : "Error creating profile.");
     } finally { setCreating(false); }
   }
 
@@ -97,10 +97,8 @@ export default function BookingModal({ listing, lang, onClose }: Props) {
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? "error");
       setStep("success");
-    } catch (e: any) {
-      setError(e.message === "Buchung für dieses Kind existiert bereits"
-        ? (de ? "Du hast für dieses Kind bereits eine Buchung." : "Booking already exists for this child.")
-        : (de ? "Fehler beim Senden. Bitte erneut versuchen." : "Error sending. Please try again."));
+    } catch {
+      setError(de ? "Fehler beim Senden. Bitte erneut versuchen." : "Error sending. Please try again.");
     } finally { setSubmitting(false); }
   }
 

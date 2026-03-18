@@ -54,7 +54,7 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
       center: ERFURT,
       zoom: 12,
       attributionControl: false,
-      localIdeographFontFamily: false as any,
+      localIdeographFontFamily: false as unknown as string,
     });
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left");
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
@@ -99,7 +99,7 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
       if (!listing.latitude || !listing.longitude) return;
       if (markersRef.current.has(listing.id)) return;
 
-      const color = (CAT_COLORS as any)[listing.category] ?? "#6b7280";
+      const color = (CAT_COLORS as Record<string, string>)[listing.category] ?? "#6b7280";
       const priceLabel = `€${listing.price % 1 === 0 ? listing.price : Number(listing.price).toFixed(0)}`;
 
       // ── Outer wrapper — this is what Mapbox positions ──
@@ -229,7 +229,7 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
       if (id === activeId) {
         pill.style.transform = "scale(1.3)";
         pill.style.zIndex = "20";
-        pill.style.boxShadow = `0 0 0 3px white, 0 0 0 5px ${(CAT_COLORS as any)[marker.getElement().querySelector("div")?.style.background ?? ""] ?? "#3b82f6"}`;
+        pill.style.boxShadow = `0 0 0 3px white, 0 0 0 5px ${(CAT_COLORS as Record<string, string>)[marker.getElement().querySelector("div")?.style.background ?? ""] ?? "#3b82f6"}`;
         wrapper.style.zIndex = "20";
         mapRef.current?.flyTo({ center: marker.getLngLat(), zoom: 14, duration: 700, essential: true });
       } else {

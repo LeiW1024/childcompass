@@ -185,9 +185,9 @@ function AddChildForm({ onAdded }: { onAdded: (child: Child) => void }) {
 /* ── Booking Detail Modal ── */
 function BookingDetailModal({ booking, onClose }: { booking: Booking; onClose: () => void }) {
   const sc = STATUS[booking.status] ?? STATUS.REQUESTED;
-  const color = (CATEGORY_COLORS as any)[booking.listing.category] ?? "#3b82f6";
-  const bg    = (CATEGORY_BG as any)[booking.listing.category]    ?? "#eff6ff";
-  const icon  = (CATEGORY_ICONS as any)[booking.listing.category] ?? "🎯";
+  const color = (CATEGORY_COLORS as Record<string, string>)[booking.listing.category] ?? "#3b82f6";
+  const bg    = (CATEGORY_BG as Record<string, string>)[booking.listing.category]    ?? "#eff6ff";
+  const icon  = (CATEGORY_ICONS as Record<string, string>)[booking.listing.category] ?? "🎯";
 
   return (
     <div
@@ -261,13 +261,16 @@ function BookingDetailModal({ booking, onClose }: { booking: Booking; onClose: (
               booking.listing.datePeriods && ["🗓 Zeitraum", booking.listing.datePeriods],
               booking.listing.maxParticipants && ["👥 Plätze", `Max. ${booking.listing.maxParticipants} Kinder`],
               ["💶 Preis", `${booking.listing.price} € ${PER_DE[booking.listing.pricePer] ?? ""}`],
-            ].filter(Boolean).map((row: any) => (
-              <div key={row[0]} style={{ display:"flex", justifyContent:"space-between", gap:12,
+            ].filter(Boolean).map((row) => {
+              const r = row as [string, string | number];
+              return (
+              <div key={r[0]} style={{ display:"flex", justifyContent:"space-between", gap:12,
                 padding:"10px 14px", background:"#f8fafc", borderRadius:12 }}>
-                <span style={{ fontSize:13, color:"#64748b", fontWeight:600 }}>{row[0]}</span>
-                <span style={{ fontSize:13, color:"#0f172a", fontWeight:700, textAlign:"right" }}>{row[1]}</span>
+                <span style={{ fontSize:13, color:"#64748b", fontWeight:600 }}>{r[0]}</span>
+                <span style={{ fontSize:13, color:"#0f172a", fontWeight:700, textAlign:"right" }}>{r[1]}</span>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Provider contact */}
@@ -557,9 +560,9 @@ export default function ParentDashboardClient({
           ) : (
             bookings.map(b => {
               const sc = STATUS[b.status] ?? STATUS.REQUESTED;
-              const color = (CATEGORY_COLORS as any)[b.listing.category] ?? "#3b82f6";
-              const bg    = (CATEGORY_BG as any)[b.listing.category]    ?? "#eff6ff";
-              const icon  = (CATEGORY_ICONS as any)[b.listing.category] ?? "🎯";
+              const color = (CATEGORY_COLORS as Record<string, string>)[b.listing.category] ?? "#3b82f6";
+              const bg    = (CATEGORY_BG as Record<string, string>)[b.listing.category]    ?? "#eff6ff";
+              const icon  = (CATEGORY_ICONS as Record<string, string>)[b.listing.category] ?? "🎯";
               return (
                 <div
                   key={b.id}

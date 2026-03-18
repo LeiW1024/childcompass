@@ -8,11 +8,12 @@ import { prisma } from "./client";
 export async function getOrCreateProfile(
   userId: string,
   email: string,
-  meta?: Record<string, any> | null,
+  meta?: Record<string, unknown> | null,
 ) {
-  const fullName  = meta?.full_name  ?? meta?.name  ?? null;
-  const avatarUrl = meta?.avatar_url ?? null;
-  const role      = meta?.role === "PROVIDER" ? "PROVIDER" : "PARENT";
+  const m = (meta ?? {}) as Record<string, string | undefined>;
+  const fullName  = m.full_name  ?? m.name  ?? null;
+  const avatarUrl = m.avatar_url ?? null;
+  const role      = m.role === "PROVIDER" ? "PROVIDER" : "PARENT";
 
   // First, try to find by supabaseId (fast path)
   const existing = await prisma.profile.findUnique({
@@ -64,15 +65,17 @@ export async function getOrCreateProfile(
   });
 
   // Persist children from registration metadata (parent flow)
-  if (role === "PARENT" && Array.isArray(meta?.children)) {
-    for (const child of meta.children) {
-      if (child.firstName?.trim()) {
+  const rawChildren = meta?.children;
+  if (role === "PARENT" && Array.isArray(rawChildren)) {
+    for (const child of rawChildren) {
+      const c = child as Record<string, string | undefined>;
+      if (c.firstName?.trim()) {
         await prisma.child.create({
           data: {
             parentId: profile.id,
-            firstName: child.firstName.trim(),
-            lastName: child.lastName?.trim() || null,
-            dateOfBirth: new Date(child.dateOfBirth),
+            firstName: c.firstName.trim(),
+            lastName: c.lastName?.trim() || null,
+            dateOfBirth: new Date(c.dateOfBirth ?? ""),
           },
         }).catch(console.error);
       }
@@ -80,13 +83,14 @@ export async function getOrCreateProfile(
   }
 
   // Persist provider profile from registration metadata (provider flow)
-  if (role === "PROVIDER" && meta?.company_name?.trim()) {
+  const companyName = typeof m.company_name === "string" ? m.company_name.trim() : "";
+  if (role === "PROVIDER" && companyName) {
     await prisma.providerProfile.create({
       data: {
         profileId: profile.id,
-        businessName: meta.company_name.trim(),
-        city: meta.city?.trim() || null,
-        phone: meta.phone?.trim() || null,
+        businessName: companyName,
+        city: typeof m.city === "string" ? m.city.trim() || null : null,
+        phone: typeof m.phone === "string" ? m.phone.trim() || null : null,
         isClaimed: true,
       },
     }).catch(console.error);

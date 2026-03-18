@@ -2,11 +2,12 @@
 // Client-side searchable listings endpoint — returns listings with all map fields
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma/client";
+import type { ListingCategory } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const category  = searchParams.get("category") as any || undefined;
+    const category  = (searchParams.get("category") as ListingCategory) || undefined;
     const ageMonths = searchParams.get("age") ? parseInt(searchParams.get("age")!) : undefined;
     const maxPrice  = searchParams.get("maxPrice") ? parseFloat(searchParams.get("maxPrice")!) : undefined;
     const search    = searchParams.get("q") || undefined;
@@ -46,6 +47,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ data: listings, error: null });
   } catch (err) {
+    console.error("[GET /api/listings/search]", err);
     return NextResponse.json({ data: null, error: "Internal server error" }, { status: 500 });
   }
 }

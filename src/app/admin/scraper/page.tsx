@@ -53,9 +53,9 @@ export default function ScraperPage() {
       if (!res.ok) throw new Error(data.error || "Scraping failed");
       setResults(data.data.providers);
       // Select all by default
-      setSelected(new Set(data.data.providers.map((_: any, i: number) => i)));
-    } catch (err: any) {
-      setError(err.message);
+      setSelected(new Set(data.data.providers.map((_: unknown, i: number) => i)));
+    } catch {
+      setError("Scraping failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -82,8 +82,8 @@ export default function ScraperPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Import failed");
       setImportSuccess(data.data.imported);
-    } catch (err: any) {
-      setError(err.message);
+    } catch {
+      setError("Import failed. Please try again.");
     } finally {
       setImporting(false);
     }

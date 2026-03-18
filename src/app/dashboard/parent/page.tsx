@@ -40,9 +40,9 @@ export default async function ParentDashboardPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <ParentDashboardClient
-        profile={baseProfile as any}
-        initialChildren={children as any}
-        initialBookings={bookings as any}
+        profile={JSON.parse(JSON.stringify(baseProfile))}
+        initialChildren={JSON.parse(JSON.stringify(children))}
+        initialBookings={JSON.parse(JSON.stringify(bookings))}
       />
     </div>
   );

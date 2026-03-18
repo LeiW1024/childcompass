@@ -146,7 +146,7 @@ export default function RegisterForm({ defaultRole = "PARENT" }: { defaultRole?:
       },
     });
     setLoading(false);
-    if (error) { setError(error.message); return; }
+    if (error) { setError(de ? "Registrierung fehlgeschlagen. Bitte erneut versuchen." : "Registration failed. Please try again."); return; }
     next();
   }
 

@@ -1,6 +1,6 @@
 // app/listings/page.tsx
 import Navbar from "@/components/layout/Navbar";
-import { prisma } from "@/lib/prisma/client";
+import { listingRepo } from "@/lib/prisma/repositories";
 import ListingsClient from "./ListingsClient";
 
 export const dynamic = "force-dynamic";
@@ -10,19 +10,7 @@ export default async function ListingsPage({
 }: {
   searchParams?: { age?: string };
 }) {
-  const listings = await prisma.listing.findMany({
-    where: { isPublished: true },
-    include: {
-      providerProfile: {
-        select: {
-          businessName: true, logoUrl: true, city: true, address: true,
-          description: true, phone: true, website: true, isClaimed: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 200,
-  });
+  const listings = await listingRepo.findPublished({ take: 200 });
 
   const serialised = listings.map(l => ({
     ...l,

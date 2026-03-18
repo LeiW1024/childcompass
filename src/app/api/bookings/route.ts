@@ -19,7 +19,8 @@ export async function GET() {
       },
     });
     return NextResponse.json({ data: bookings, error: null });
-  } catch {
+  } catch (err) {
+    console.error("[GET /api/bookings]", err);
     return NextResponse.json({ data: null, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -57,9 +58,10 @@ export async function POST(request: Request) {
       },
     });
     return NextResponse.json({ data: booking, error: null }, { status: 201 });
-  } catch (err: any) {
-    if (err.code === "P2002")
+  } catch (err) {
+    if (err instanceof Error && "code" in err && (err as { code: string }).code === "P2002")
       return NextResponse.json({ data: null, error: "Booking already exists for this child" }, { status: 409 });
+    console.error("[POST /api/bookings]", err);
     return NextResponse.json({ data: null, error: "Internal server error" }, { status: 500 });
   }
 }

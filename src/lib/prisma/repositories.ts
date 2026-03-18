@@ -16,7 +16,7 @@ export const profileRepo = {
     prisma.profile.upsert({
       where: { supabaseId: data.supabaseId },
       create: data,
-      update: { fullName: data.fullName, avatarUrl: data.avatarUrl },
+      update: { fullName: data.fullName, avatarUrl: data.avatarUrl, updatedAt: new Date() },
     }),
 };
 
@@ -65,7 +65,7 @@ export const listingRepo = {
           : {}),
         ...(opts?.city ? { city: { contains: opts.city, mode: "insensitive" } } : {}),
       },
-      include: { providerProfile: { select: { businessName: true, logoUrl: true, city: true } } },
+      include: { providerProfile: { select: { businessName: true, logoUrl: true, city: true, address: true, description: true, phone: true, website: true, isClaimed: true } } },
       orderBy: { createdAt: "desc" },
       take: opts?.take ?? 20,
       skip: opts?.skip ?? 0,
@@ -116,7 +116,7 @@ export const bookingRepo = {
       where: { listing: { providerProfileId } },
       orderBy: { createdAt: "desc" },
       include: {
-        listing: { select: { id: true, title: true } },
+        listing: { select: { id: true, title: true, category: true } },
         child: true,
         parent: { select: { fullName: true, email: true } },
       },

@@ -119,7 +119,7 @@ export default async function ProviderDashboardPage() {
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {CATEGORY_ICONS[(b.listing as any).category as keyof typeof CATEGORY_ICONS]} {(b.listing as any).title}
+                        {CATEGORY_ICONS[b.listing.category as keyof typeof CATEGORY_ICONS]} {b.listing.title}
                         <span className="mx-1">·</span>
                         👦 {b.child.firstName}
                         <span className="mx-1">·</span>

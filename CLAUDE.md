@@ -327,31 +327,35 @@ Standards enforced across the codebase, discovered during systematic code review
 ### Security
 - **No mass assignment**: Every PATCH/PUT endpoint must define an `ALLOWED_FIELDS` allowlist and only copy those fields from the request body
 - **Ownership verification**: Every mutating endpoint (PATCH/DELETE) must verify the authenticated user owns the target resource before modifying it
-- **No error leaks**: Never expose `err.message` or stack traces to clients — log server-side with `console.error("[ROUTE]", err)`, return generic `"Internal server error"`
+- **No error leaks**: Never expose `err.message` or stack traces to clients — log server-side with `console.error("[ROUTE]", err)`, return generic `"Internal server error"`. This applies to both API routes AND client-side catch blocks (use user-friendly translated messages instead)
 - **XSS prevention**: Never use `innerHTML` with user-generated content — use `textContent` or escape with `escapeHtml()`
-- **Open redirect prevention**: Validate redirect URLs start with `/` and not `//`
+- **Open redirect prevention**: Validate redirect URLs start with `/` and not `//` — applies to both server-side callbacks AND client-side `router.push()` with query params
 - **Admin auth**: Store HMAC-derived token in httpOnly cookie, never the raw secret key
 - **Timing-safe comparison**: Use `crypto.timingSafeEqual` for secret comparison
 
 ### API Routes
 - **Response shape**: All routes return `{ data, error }` — success: `{ data: <payload>, error: null }`, error: `{ data: null, error: "message" }`
-- **Error handling**: Wrap handler body in try-catch, log with route identifier, return 500 with generic message
+- **Error handling**: Wrap handler body in try-catch, log with `console.error("[ROUTE]", err)`, return 500 with generic message. Every catch block must log — never silently swallow errors
 - **Validation**: Check required fields exist, verify related resources (e.g. listing exists and is published before creating booking, child belongs to parent)
 - **Authorization**: Repositories are raw CRUD — authorization is always the route handler's responsibility
+- **Check response status**: Client-side code calling APIs must check `res.ok` before using the response data
 
 ### Components
 - **Server-first**: Default to Server Components; only add `"use client"` for state, effects, or browser APIs
 - **Suspense boundaries**: Wrap any component using `useSearchParams()` in `<Suspense>`
 - **Hybrid pattern**: Server shell fetches data and passes props to client children (e.g. `Navbar` → `NavbarClient`)
+- **Serialization**: When passing Prisma objects from server to client components, use `JSON.parse(JSON.stringify(...))` instead of `as any` casts
 
 ### TypeScript
-- **No unnecessary `any`**: Use proper types or `unknown` with narrowing
+- **No unnecessary `any`**: Use proper types, `unknown` with narrowing, or `Record<string, string>` for index access. Use `as unknown as TargetType` only as last resort, never bare `as any`
+- **Catch blocks**: Use `catch (err)` or `catch {}` — never `catch (err: any)`. Check error properties with `instanceof` or `in` operator
 - **Type-safe translations**: Use `LabelKey` union type with `t()` function
 - **Clean imports**: Remove unused imports, props, and variables
+- **Enum parameters**: Cast API query params to their Prisma enum type (e.g. `as ListingCategory`), not `as any`
 
 ### Prisma
 - **Never use empty `update: {}`** in upserts — always include `updatedAt: new Date()`
-- **Repository pattern**: All queries go through `lib/prisma/repositories.ts`
+- **Repository pattern**: All queries go through `lib/prisma/repositories.ts` — never import `prisma` directly in page/route files when a repo method exists
 
 ---
 

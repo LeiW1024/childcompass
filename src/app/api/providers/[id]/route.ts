@@ -41,7 +41,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
     const body = await request.json();
     const allowedFields = ["businessName", "description", "address", "city", "phone", "website", "logoUrl"];
-    const data: Record<string, any> = { updatedAt: new Date() };
+    const data: Record<string, unknown> = { updatedAt: new Date() };
     for (const field of allowedFields) {
       if (field in body) data[field] = body[field];
     }

@@ -14,7 +14,8 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     if (!child) return NextResponse.json({ data: null, error: "Not found" }, { status: 404 });
     await prisma.child.delete({ where: { id: params.id } });
     return NextResponse.json({ data: null, error: null });
-  } catch {
+  } catch (err) {
+    console.error("[DELETE /api/children/id]", err);
     return NextResponse.json({ data: null, error: "Internal server error" }, { status: 500 });
   }
 }

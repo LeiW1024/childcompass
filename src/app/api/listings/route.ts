@@ -2,15 +2,17 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { profileRepo, listingRepo } from "@/lib/prisma/repositories";
+import type { ListingCategory } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const category = searchParams.get("category") as any || undefined;
+    const category = (searchParams.get("category") as ListingCategory) || undefined;
     const age = searchParams.get("age") ? parseInt(searchParams.get("age")!) : undefined;
     const listings = await listingRepo.findPublished({ category, ageMonths: age });
     return NextResponse.json({ data: listings, error: null });
   } catch (err) {
+    console.error("[GET /api/listings]", err);
     return NextResponse.json({ data: null, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -40,6 +42,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ data: listing, error: null }, { status: 201 });
   } catch (err) {
+    console.error("[POST /api/listings]", err);
     return NextResponse.json({ data: null, error: "Internal server error" }, { status: 500 });
   }
 }
