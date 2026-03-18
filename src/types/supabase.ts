@@ -20,7 +20,7 @@ export type Database = {
           email: string;
           full_name: string | null;
           avatar_url: string | null;
-          role: "PARENT" | "CAREGIVER" | "ADMIN";
+          role: "PARENT" | "PROVIDER" | "ADMIN";
           created_at: string;
           updated_at: string;
         };
@@ -31,27 +31,7 @@ export type Database = {
     Views: Record<string, never>;
     Functions: Record<string, never>;
     Enums: {
-      user_role: "PARENT" | "CAREGIVER" | "ADMIN";
-      family_role: "OWNER" | "MEMBER" | "VIEWER";
-      activity_type:
-        | "LEARNING"
-        | "PLAY"
-        | "EXERCISE"
-        | "READING"
-        | "SOCIAL"
-        | "CREATIVE"
-        | "NUTRITION"
-        | "SLEEP"
-        | "HEALTH"
-        | "OTHER";
-      milestone_category:
-        | "MOTOR"
-        | "LANGUAGE"
-        | "COGNITIVE"
-        | "SOCIAL_EMOTIONAL"
-        | "SELF_CARE"
-        | "ACADEMIC";
-      goal_status: "ACTIVE" | "COMPLETED" | "PAUSED" | "CANCELLED";
+      user_role: "PARENT" | "PROVIDER" | "ADMIN";
     };
   };
 };

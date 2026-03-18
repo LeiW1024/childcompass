@@ -8,7 +8,6 @@ import SignOutButton from "@/components/ui/SignOutButton";
 interface Props {
   user: boolean;
   dashHref: string;
-  avatarUrl?: string | null;
   fullName?: string | null;
 }
 

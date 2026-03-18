@@ -44,7 +44,7 @@ const FOOTER = {
       { label: "2–4 years", href: "/listings?age=36" },
       { label: "5–6 years", href: "/listings?age=66" },
     ],
-    copyright: "© 2025 ChildCompass. All rights reserved.",
+    copyright: `© ${new Date().getFullYear()} ChildCompass. All rights reserved.`,
     madeIn: "Made with ❤️ in Erfurt, Germany",
   },
   de: {
@@ -87,7 +87,7 @@ const FOOTER = {
       { label: "2–4 Jahre",  href: "/listings?age=36" },
       { label: "5–6 Jahre",  href: "/listings?age=66" },
     ],
-    copyright: "© 2025 ChildCompass. Alle Rechte vorbehalten.",
+    copyright: `© ${new Date().getFullYear()} ChildCompass. Alle Rechte vorbehalten.`,
     madeIn: "Mit ❤️ in Erfurt gemacht",
   },
 };

@@ -5,7 +5,7 @@ import NavbarClient from "./NavbarClient";
 
 export default async function Navbar() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
 
   let role: string | null = null;
   let fullName: string | null = null;

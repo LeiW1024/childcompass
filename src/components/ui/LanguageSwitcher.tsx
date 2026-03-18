@@ -69,7 +69,9 @@ export const LABELS: Record<string, Record<Lang, string>> = {
   by:                 { en: "by",                          de: "von" },
 };
 
-export function t(key: string, lang: Lang): string {
+export type LabelKey = keyof typeof LABELS;
+
+export function t(key: LabelKey, lang: Lang): string {
   return LABELS[key]?.[lang] ?? LABELS[key]?.en ?? key;
 }
 
