@@ -44,8 +44,8 @@ export async function GET(request: Request) {
       take: 100,
     });
 
-    return NextResponse.json({ data: listings });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ data: listings, error: null });
+  } catch (err) {
+    return NextResponse.json({ data: null, error: "Internal server error" }, { status: 500 });
   }
 }

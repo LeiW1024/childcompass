@@ -459,8 +459,10 @@ export default function ListingsClient({ initialListings, mapboxToken, initialAg
   }), [initialListings, cats, band, maxP, maxD, userPos, query]);
 
   function openCard(l:Listing) { setActiveId(l.id); setModal(l); }
-  function onMarkerClick(l:any) {
-    setActiveId(l.id); setModal(l as Listing);
+  function onMarkerClick(l: { id: string }) {
+    setActiveId(l.id);
+    const full = initialListings.find(x => x.id === l.id);
+    if (full) setModal(full);
     setTimeout(()=>refs.current.get(l.id)?.scrollIntoView({ behavior:"smooth", block:"nearest" }), 50);
   }
   const onEnter = useCallback((id:string) => setHoverId(id), []);

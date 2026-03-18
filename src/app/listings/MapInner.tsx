@@ -8,6 +8,10 @@ import { CATEGORY_COLORS as CAT_COLORS } from "@/types";
 
 const ERFURT: [number, number] = [11.0328, 50.9848];
 
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
 const CAT_ICONS: Record<string, string> = {
   DAYCARE:"🏠", PLAYGROUP:"👫", SPORTS:"⚽", ARTS_CRAFTS:"🎨",
   MUSIC:"🎵", LANGUAGE:"🗣️", SWIMMING:"🏊", NATURE:"🌿", EDUCATION:"📚", OTHER:"🎯",
@@ -147,7 +151,7 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
 
       const maxBiz = listing.providerProfile.businessName.slice(0, 22);
       const maxTitle = listing.title.slice(0, 28);
-      tip.innerHTML = `<span style="opacity:0.6;font-size:10px">${maxBiz}</span>&nbsp;·&nbsp;${maxTitle}`;
+      tip.textContent = `${maxBiz} · ${maxTitle}`;
 
       // Arrow for tooltip
       const arrow = document.createElement("div");
@@ -193,15 +197,15 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
           .setHTML(`
             <div style="font-family:system-ui,sans-serif;padding:2px">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                <span style="font-size:22px;flex-shrink:0">${CAT_ICONS[listing.category] ?? "🎯"}</span>
+                <span style="font-size:22px;flex-shrink:0">${escapeHtml(CAT_ICONS[listing.category] ?? "🎯")}</span>
                 <div style="min-width:0">
-                  <p style="font-size:12px;font-weight:800;margin:0;line-height:1.3">${listing.title}</p>
-                  <p style="font-size:10px;color:#64748b;margin:2px 0 0">${listing.providerProfile.businessName}</p>
+                  <p style="font-size:12px;font-weight:800;margin:0;line-height:1.3">${escapeHtml(listing.title)}</p>
+                  <p style="font-size:10px;color:#64748b;margin:2px 0 0">${escapeHtml(listing.providerProfile.businessName)}</p>
                 </div>
               </div>
               <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-                <span style="font-size:14px;font-weight:800;color:${color}">${priceLabel}</span>
-                <span style="font-size:10px;background:${color}22;color:${color};font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap">${listing.category}</span>
+                <span style="font-size:14px;font-weight:800;color:${escapeHtml(color)}">${escapeHtml(priceLabel)}</span>
+                <span style="font-size:10px;background:${escapeHtml(color)}22;color:${escapeHtml(color)};font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap">${escapeHtml(listing.category)}</span>
               </div>
             </div>
           `)
