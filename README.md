@@ -56,58 +56,59 @@ Built entirely through conversational AI development with Claude using a **verti
 
 ## Folder Structure
 
-```
 childcompass/
-├── app/
-│   ├── layout.tsx                    # Root layout, metadata, LangProvider
-│   ├── globals.css                   # Design system tokens + Tailwind base
-│   ├── page.tsx                      # Landing page
-│   ├── auth/login|register|error/    # Auth pages
-│   ├── listings/                     # Directory page + detail page
-│   │   ├── page.tsx
-│   │   ├── ListingsClient.tsx        # Client-side filter + map logic
-│   │   ├── MapPanel.tsx / MapInner.tsx
-│   │   └── [id]/page.tsx
-│   ├── dashboard/
-│   │   ├── page.tsx                  # Smart redirect (parent vs provider)
-│   │   ├── parent/                   # Bookings + children tabs
-│   │   └── provider/                 # Listings + booking requests
-│   ├── api/                          # All route handlers
-│   │   ├── auth/callback/route.ts
-│   │   ├── listings/
-│   │   ├── bookings/
-│   │   ├── children/
-│   │   ├── providers/
-│   │   ├── claim/
-│   │   └── admin/
-│   └── claim/[token]/page.tsx
-├── components/
-│   ├── layout/Navbar.tsx + NavbarClient.tsx + Footer.tsx
-│   ├── forms/LoginForm.tsx + RegisterForm.tsx + AuthPageWrapper.tsx
-│   ├── ui/LanguageSwitcher.tsx + SignOutButton.tsx + [Radix wrappers]
-│   ├── HomeContent.tsx
-│   └── BookingModal.tsx
-├── lib/
-│   ├── prisma/client.ts              # Singleton Prisma instance
-│   ├── prisma/repositories.ts        # Query builders (profileRepo, listingRepo, etc.)
-│   ├── prisma/getOrCreateProfile.ts  # Auth → DB profile sync
-│   ├── supabase/client.ts            # Browser-side client
-│   ├── supabase/server.ts            # Server + admin clients
-│   ├── supabase/middleware.ts        # Session refresh
-│   └── utils/cn.ts + dates.ts
-├── types/
-│   ├── index.ts                      # All enums, labels, icons, color maps
-│   └── supabase.ts                   # Auto-generated types
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx                    # Root layout, metadata, LangProvider
+│   │   ├── globals.css                   # Design system tokens + Tailwind base
+│   │   ├── page.tsx                      # Landing page
+│   │   ├── auth/login|register|error/    # Auth pages
+│   │   ├── listings/                     # Directory page + detail page
+│   │   │   ├── page.tsx
+│   │   │   ├── ListingsClient.tsx        # Client-side filter + map logic
+│   │   │   ├── MapPanel.tsx / MapInner.tsx
+│   │   │   └── [id]/page.tsx
+│   │   ├── dashboard/
+│   │   │   ├── page.tsx                  # Smart redirect (parent vs provider)
+│   │   │   ├── parent/                   # Bookings + children tabs
+│   │   │   └── provider/                 # Listings + booking requests
+│   │   ├── api/                          # All route handlers
+│   │   │   ├── auth/callback/route.ts
+│   │   │   ├── listings/
+│   │   │   ├── bookings/
+│   │   │   ├── children/
+│   │   │   ├── providers/
+│   │   │   ├── claim/
+│   │   │   └── admin/
+│   │   └── claim/[token]/page.tsx
+│   ├── components/
+│   │   ├── layout/Navbar.tsx + NavbarClient.tsx + Footer.tsx
+│   │   ├── forms/LoginForm.tsx + RegisterForm.tsx + AuthPageWrapper.tsx
+│   │   ├── ui/LanguageSwitcher.tsx + SignOutButton.tsx + [Radix wrappers]
+│   │   ├── HomeContent.tsx
+│   │   └── BookingModal.tsx
+│   ├── lib/
+│   │   ├── prisma/client.ts              # Singleton Prisma instance
+│   │   ├── prisma/repositories.ts        # Query builders (profileRepo, listingRepo, etc.)
+│   │   ├── prisma/getOrCreateProfile.ts  # Auth → DB profile sync
+│   │   ├── supabase/client.ts            # Browser-side client
+│   │   ├── supabase/server.ts            # Server + admin clients
+│   │   ├── supabase/middleware.ts        # Session refresh
+│   │   └── utils/cn.ts + dates.ts
+│   ├── types/
+│   │   ├── index.ts                      # All enums, labels, icons, color maps
+│   │   └── supabase.ts                   # Auto-generated types
+│   ├── styles/                           # Additional stylesheets
+│   ├── __tests__/                        # Test files
+│   └── middleware.ts                     # Route protection
 ├── prisma/
 │   ├── schema.prisma
 │   ├── seed.mjs                      # 17 providers + 32 listings
 │   ├── fix-coords.mjs                # Coordinate correction
 │   └── migrations/
-├── middleware.ts                     # Route protection
 ├── next.config.mjs
 ├── tailwind.config.ts
 └── .env.example
-```
 
 ## Setup
 
