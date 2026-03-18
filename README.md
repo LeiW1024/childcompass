@@ -56,6 +56,7 @@ Built entirely through conversational AI development with Claude using a **verti
 
 ## Folder Structure
 
+```
 childcompass/
 ├── src/
 │   ├── app/
@@ -109,6 +110,7 @@ childcompass/
 ├── next.config.mjs
 ├── tailwind.config.ts
 └── .env.example
+```
 
 ## Setup
 
