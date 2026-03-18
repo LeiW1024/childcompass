@@ -12,6 +12,7 @@ export async function getOrCreateProfile(
 ) {
   const fullName  = meta?.full_name  ?? meta?.name  ?? null;
   const avatarUrl = meta?.avatar_url ?? null;
+  const role      = meta?.role === "PROVIDER" ? "PROVIDER" : "PARENT";
 
   // First, try to find by supabaseId (fast path)
   const existing = await prisma.profile.findUnique({
@@ -52,13 +53,44 @@ export async function getOrCreateProfile(
   }
 
   // No profile at all — create a new one
-  return prisma.profile.create({
+  const profile = await prisma.profile.create({
     data: {
       supabaseId: userId,
       email:      emailNormalized || "",
       fullName,
       avatarUrl,
-      role: "PARENT",
+      role,
     },
   });
+
+  // Persist children from registration metadata (parent flow)
+  if (role === "PARENT" && Array.isArray(meta?.children)) {
+    for (const child of meta.children) {
+      if (child.firstName?.trim()) {
+        await prisma.child.create({
+          data: {
+            parentId: profile.id,
+            firstName: child.firstName.trim(),
+            lastName: child.lastName?.trim() || null,
+            dateOfBirth: new Date(child.dateOfBirth),
+          },
+        }).catch(console.error);
+      }
+    }
+  }
+
+  // Persist provider profile from registration metadata (provider flow)
+  if (role === "PROVIDER" && meta?.company_name?.trim()) {
+    await prisma.providerProfile.create({
+      data: {
+        profileId: profile.id,
+        businessName: meta.company_name.trim(),
+        city: meta.city?.trim() || null,
+        phone: meta.phone?.trim() || null,
+        isClaimed: true,
+      },
+    }).catch(console.error);
+  }
+
+  return profile;
 }

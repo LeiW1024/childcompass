@@ -140,7 +140,7 @@ export default function RegisterForm({ defaultRole = "PARENT" }: { defaultRole?:
       options: {
         data: {
           full_name: fullName, role,
-          ...(role === "PARENT" ? { children } : { company_name: companyName, city: companyCity }),
+          ...(role === "PARENT" ? { children } : { company_name: companyName, city: companyCity, phone: companyPhone }),
         },
         emailRedirectTo: `${window.location.origin}/api/auth/callback`,
       },

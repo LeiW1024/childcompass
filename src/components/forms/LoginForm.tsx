@@ -2,11 +2,12 @@
 // components/forms/LoginForm.tsx
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useLang } from "@/components/ui/LanguageSwitcher";
 
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const { lang } = useLang();
   const de = lang === "de";
@@ -28,7 +29,8 @@ export default function LoginForm() {
       setLoading(false);
       return;
     }
-    router.push("/dashboard");
+    const next = searchParams.get("next") || "/dashboard";
+    router.push(next);
     router.refresh();
   }
 

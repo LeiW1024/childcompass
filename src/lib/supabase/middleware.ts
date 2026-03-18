@@ -25,13 +25,6 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const { pathname } = request.nextUrl;
 
-  const isPublic =
-    pathname === "/" ||
-    pathname.startsWith("/listings") ||
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/claim");
-
   if (pathname.startsWith("/dashboard") && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
@@ -44,15 +37,10 @@ export async function updateSession(request: NextRequest) {
     const adminKey = request.headers.get("x-admin-key") ||
       request.cookies.get("admin_key")?.value;
     if (adminKey !== process.env.ADMIN_SECRET_KEY) {
-      // Check for admin_key cookie set by login form
-      const cookieKey = request.cookies.get("admin_key")?.value;
-      if (cookieKey !== process.env.ADMIN_SECRET_KEY) {
-        // Allow the admin login page itself
-        if (pathname === "/admin/login") return supabaseResponse;
-        const url = request.nextUrl.clone();
-        url.pathname = "/admin/login";
-        return NextResponse.redirect(url);
-      }
+      if (pathname === "/admin/login") return supabaseResponse;
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/login";
+      return NextResponse.redirect(url);
     }
   }
 

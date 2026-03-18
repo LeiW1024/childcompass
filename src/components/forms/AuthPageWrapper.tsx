@@ -1,6 +1,7 @@
 "use client";
 // components/forms/AuthPageWrapper.tsx
 // Client wrapper so auth pages can access lang context for translations
+import { Suspense } from "react";
 import Link from "next/link";
 import { useLang } from "@/components/ui/LanguageSwitcher";
 import LoginForm from "./LoginForm";
@@ -38,7 +39,7 @@ export default function AuthPageWrapper({ page, defaultRole = "PARENT" }: Props)
           <h1 className="text-3xl font-extrabold tracking-tight">{de ? tx.title.de : tx.title.en}</h1>
           <p className="text-base text-muted-foreground mt-2">{de ? tx.sub.de : tx.sub.en}</p>
         </div>
-        <LoginForm />
+        <Suspense><LoginForm /></Suspense>
         <p className="text-sm text-muted-foreground text-center pt-2">
           {de ? tx.noAcct.de : tx.noAcct.en}{" "}
           <a href="/auth/register" className="text-primary font-bold hover:underline">
