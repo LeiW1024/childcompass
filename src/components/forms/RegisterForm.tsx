@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useLang } from "@/components/ui/LanguageSwitcher";
 
 type Role = "PARENT" | "PROVIDER";
-type Gender = "MALE" | "FEMALE" | "OTHER";
+type Gender = "MALE" | "FEMALE";
 interface ChildData { firstName: string; lastName: string; gender: Gender | ""; dateOfBirth: string; }
 
 // ── Step bar ─────────────────────────────────────────────────────────────────
@@ -71,7 +71,6 @@ function ChildRow({ child, index, onChange, onRemove, canRemove, de }: {
             <option value="">{de ? "Auswählen…" : "Select…"}</option>
             <option value="FEMALE">{de ? "Mädchen" : "Girl"}</option>
             <option value="MALE">{de ? "Junge" : "Boy"}</option>
-            <option value="OTHER">{de ? "Divers" : "Other"}</option>
           </select>
         </div>
         <div>

@@ -25,6 +25,23 @@ export const CATEGORY_LABELS: Record<ListingCategory, string> = {
   OTHER:      "Other",
 };
 
+export const CATEGORY_LABELS_I18N: Record<ListingCategory, { en: string; de: string }> = {
+  DAYCARE:     { en: "Daycare",       de: "Kinderbetreuung" },
+  PLAYGROUP:   { en: "Playgroup",     de: "Spielgruppe" },
+  SPORTS:      { en: "Sports",        de: "Sport" },
+  ARTS_CRAFTS: { en: "Arts & Crafts", de: "Basteln & Kreatives" },
+  MUSIC:       { en: "Music",         de: "Musik" },
+  LANGUAGE:    { en: "Language",      de: "Sprache" },
+  SWIMMING:    { en: "Swimming",      de: "Schwimmen" },
+  NATURE:      { en: "Nature",        de: "Natur" },
+  EDUCATION:   { en: "Education",     de: "Bildung" },
+  OTHER:       { en: "Other",         de: "Sonstiges" },
+};
+
+export function categoryLabel(cat: ListingCategory, lang: "en" | "de"): string {
+  return CATEGORY_LABELS_I18N[cat]?.[lang] ?? CATEGORY_LABELS[cat] ?? cat;
+}
+
 export const CATEGORY_ICONS: Record<ListingCategory, string> = {
   DAYCARE:    "🏫",
   PLAYGROUP:  "🧸",

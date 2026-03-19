@@ -67,6 +67,8 @@ export const LABELS: Record<string, Record<Lang, string>> = {
   verified:           { en: "Verified",                    de: "Verifiziert" },
   maxParticipants:    { en: "Max",                         de: "Max." },
   by:                 { en: "by",                          de: "von" },
+  free:               { en: "N/A",                         de: "k.A." },
+  freeShort:          { en: "N/A",                         de: "k.A." },
 };
 
 export type LabelKey = keyof typeof LABELS;

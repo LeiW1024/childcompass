@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { CATEGORY_COLORS as CAT_COLORS } from "@/types";
+import { CATEGORY_COLORS as CAT_COLORS, categoryLabel, type ListingCategory } from "@/types";
 
 const ERFURT: [number, number] = [11.0328, 50.9848];
 
@@ -85,7 +85,15 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
     } catch (e) { console.warn("Map language update failed:", e); }
   }
 
-  // ── Sync markers ──────────────────────────────────────────────────────────
+  // Store refs for event handlers so markers don't need recreation when callbacks change
+  const onMarkerClickRef = useRef(onMarkerClick);
+  const onMarkerHoverRef = useRef(onMarkerHover);
+  const langRef = useRef(lang);
+  useEffect(() => { onMarkerClickRef.current = onMarkerClick; }, [onMarkerClick]);
+  useEffect(() => { onMarkerHoverRef.current = onMarkerHover; }, [onMarkerHover]);
+  useEffect(() => { langRef.current = lang; }, [lang]);
+
+  // ── Sync markers (only when listings change) ────────────────────────────
   useEffect(() => {
     if (!ready || !mapRef.current) return;
 
@@ -100,15 +108,10 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
       if (markersRef.current.has(listing.id)) return;
 
       const color = (CAT_COLORS as Record<string, string>)[listing.category] ?? "#6b7280";
-      const priceLabel = `€${listing.price % 1 === 0 ? listing.price : Number(listing.price).toFixed(0)}`;
 
-      // ── Outer wrapper — this is what Mapbox positions ──
-      // FIX: the tooltip must be inside a wrapper with overflow:visible + position:relative
-      // so that it doesn't affect the marker's bounding box / Mapbox drag calculation.
       const wrapper = document.createElement("div");
       wrapper.style.cssText = "display:inline-block; overflow:visible;";
 
-      // ── Pill ──
       const pill = document.createElement("div");
       pill.style.cssText = [
         `background:${color}`,
@@ -124,11 +127,12 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
         "transition:transform 0.15s cubic-bezier(.34,1.56,.64,1), box-shadow 0.15s ease",
         "user-select:none",
       ].join(";");
-      pill.textContent = priceLabel;
+      pill.dataset.listingId = listing.id;
+      pill.dataset.price = String(listing.price);
+      pill.textContent = Number(listing.price) === 0
+        ? (langRef.current === "de" ? "k.A." : "N/A")
+        : `€${listing.price % 1 === 0 ? listing.price : Number(listing.price).toFixed(0)}`;
 
-      // ── Tooltip — positioned relative to wrapper, NOT affecting pill layout ──
-      // KEY FIX: tooltip is a sibling of pill inside wrapper, absolutely positioned.
-      // It must NOT be a child of pill, which would shift pill's layout.
       const tip = document.createElement("div");
       tip.style.cssText = [
         "position:absolute",
@@ -153,7 +157,6 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
       const maxTitle = listing.title.slice(0, 28);
       tip.textContent = `${maxBiz} · ${maxTitle}`;
 
-      // Arrow for tooltip
       const arrow = document.createElement("div");
       arrow.style.cssText = [
         "position:absolute",
@@ -167,28 +170,29 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
       ].join(";");
       tip.appendChild(arrow);
 
-      // Assemble: wrapper > pill + tip (siblings)
       wrapper.appendChild(pill);
       wrapper.appendChild(tip);
 
-      // ── Events on pill only ──
       pill.addEventListener("mouseenter", () => {
         pill.style.transform = "scale(1.2)";
         pill.style.boxShadow = `0 6px 20px ${color}88`;
         tip.style.opacity = "1";
-        onMarkerHover(listing.id);
+        onMarkerHoverRef.current(listing.id);
       });
       pill.addEventListener("mouseleave", () => {
         pill.style.transform = "scale(1)";
         pill.style.boxShadow = "0 3px 12px rgba(0,0,0,0.22)";
         tip.style.opacity = "0";
-        onMarkerHover(null);
+        onMarkerHoverRef.current(null);
       });
       pill.addEventListener("click", e => {
         e.stopPropagation();
-        onMarkerClick(listing);
-        // Popup
+        onMarkerClickRef.current(listing);
         popupRef.current?.remove();
+        const curLang = langRef.current;
+        const curPriceLabel = Number(listing.price) === 0
+          ? (curLang === "de" ? "k.A." : "N/A")
+          : `€${listing.price % 1 === 0 ? listing.price : Number(listing.price).toFixed(0)}`;
         const popup = new mapboxgl.Popup({
           offset: 18, closeButton: true, maxWidth: "260px",
           className: "childcompass-popup",
@@ -204,8 +208,8 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
                 </div>
               </div>
               <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-                <span style="font-size:14px;font-weight:800;color:${escapeHtml(color)}">${escapeHtml(priceLabel)}</span>
-                <span style="font-size:10px;background:${escapeHtml(color)}22;color:${escapeHtml(color)};font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap">${escapeHtml(listing.category)}</span>
+                <span style="font-size:14px;font-weight:800;color:${escapeHtml(color)}">${escapeHtml(curPriceLabel)}</span>
+                <span style="font-size:10px;background:${escapeHtml(color)}22;color:${escapeHtml(color)};font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap">${escapeHtml(categoryLabel(listing.category as ListingCategory, curLang as "en" | "de"))}</span>
               </div>
             </div>
           `)
@@ -218,7 +222,19 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
         .addTo(mapRef.current!);
       markersRef.current.set(listing.id, marker);
     });
-  }, [ready, listings, onMarkerClick, onMarkerHover]);
+  }, [ready, listings]);
+
+  // ── Update marker labels on language change (no recreation) ─────────────
+  useEffect(() => {
+    markersRef.current.forEach((marker) => {
+      const pill = marker.getElement()?.querySelector("div") as HTMLElement | null;
+      if (!pill || !pill.dataset.price) return;
+      const price = Number(pill.dataset.price);
+      pill.textContent = price === 0
+        ? (lang === "de" ? "k.A." : "N/A")
+        : `€${price % 1 === 0 ? price : price.toFixed(0)}`;
+    });
+  }, [lang]);
 
   // ── Highlight active (clicked from card) ─────────────────────────────────
   useEffect(() => {

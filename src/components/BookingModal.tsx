@@ -18,7 +18,6 @@ interface Props {
 const GENDER_OPTS = [
   { value: "male",   label: { de: "Junge 👦", en: "Boy 👦" } },
   { value: "female", label: { de: "Mädchen 👧", en: "Girl 👧" } },
-  { value: "other",  label: { de: "Divers 🌈", en: "Other 🌈" } },
 ];
 
 const PER_DE: Record<string, string> = { SESSION:"/ Einheit", MONTH:"/ Monat", WEEK:"/ Woche", YEAR:"/ Jahr" };
@@ -50,11 +49,15 @@ export default function BookingModal({ listing, lang, onClose }: Props) {
 
   const loadChildren = useCallback(async () => {
     try {
-      const res = await fetch("/api/children");
-      if (!res.ok) throw new Error();
-      const { data } = await res.json();
-      setChildren(data ?? []);
-      setStep(data?.length ? "select-child" : "create-child");
+      const res = await fetch("/api/children", { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) {
+        setStep("create-child");
+        return;
+      }
+      const json = await res.json();
+      const data = json?.data;
+      setChildren(Array.isArray(data) ? data : []);
+      setStep(Array.isArray(data) && data.length > 0 ? "select-child" : "create-child");
     } catch {
       setStep("create-child");
     }
@@ -74,8 +77,18 @@ export default function BookingModal({ listing, lang, onClose }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firstName: newName.trim(), gender: newGender, dateOfBirth: newDob }),
       });
+      if (!res.ok) {
+        if (res.status === 401) {
+          setError(de
+            ? "Bitte melde dich zuerst an, um ein Kinderprofil zu erstellen."
+            : "Please sign in first to create a child profile.");
+          setCreating(false);
+          return;
+        }
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error ?? "Fehler");
+      }
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Fehler");
       const { data } = json;
       setChildren(prev => [...prev, data]);
       setSelectedChild(data);
@@ -142,10 +155,14 @@ export default function BookingModal({ listing, lang, onClose }: Props) {
             marginTop:12, display:"inline-flex", alignItems:"baseline", gap:4,
             background:"rgba(255,255,255,0.18)", borderRadius:10, padding:"4px 12px",
           }}>
-            <span style={{ fontSize:22, fontWeight:900 }}>{listing.price} €</span>
-            <span style={{ fontSize:13, opacity:.85 }}>
-              {(de ? PER_DE : PER_EN)[listing.pricePer] ?? ""}
+            <span style={{ fontSize:22, fontWeight:900 }}>
+              {Number(listing.price) === 0 ? (de ? "k.A." : "N/A") : `${listing.price} €`}
             </span>
+            {Number(listing.price) !== 0 && (
+              <span style={{ fontSize:13, opacity:.85 }}>
+                {(de ? PER_DE : PER_EN)[listing.pricePer] ?? ""}
+              </span>
+            )}
           </div>
         </div>
 
@@ -382,8 +399,10 @@ export default function BookingModal({ listing, lang, onClose }: Props) {
                     </p>
                   )}
                   <p style={{ fontSize:13, color:"#374151", margin:0 }}>
-                    <strong>{de ? "Preis:" : "Price:"}</strong> {listing.price} €{" "}
-                    {(de ? PER_DE : PER_EN)[listing.pricePer] ?? ""}
+                    <strong>{de ? "Preis:" : "Price:"}</strong>{" "}
+                    {Number(listing.price) === 0
+                      ? (de ? "k.A." : "N/A")
+                      : `${listing.price} € ${(de ? PER_DE : PER_EN)[listing.pricePer] ?? ""}`}
                   </p>
                 </div>
               </div>

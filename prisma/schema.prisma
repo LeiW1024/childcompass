@@ -75,6 +75,7 @@ model Child {
   parentId    String    @map("parent_id")
   firstName   String    @map("first_name")
   lastName    String?   @map("last_name")
+  gender      String?   @map("gender")
   dateOfBirth DateTime  @map("date_of_birth")
   avatarUrl   String?   @map("avatar_url")
   createdAt   DateTime  @default(now()) @map("created_at")
@@ -95,6 +96,7 @@ model Listing {
   providerProfileId String          @map("provider_profile_id")
   title             String
   description       String
+  descriptionDe     String?           @map("description_de")
   category          ListingCategory
   ageMinMonths      Int             @map("age_min_months")
   ageMaxMonths      Int             @map("age_max_months")

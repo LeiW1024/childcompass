@@ -1,11 +1,11 @@
 "use client";
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { useLang } from "@/components/ui/LanguageSwitcher";
+import { useLang, t, type Lang } from "@/components/ui/LanguageSwitcher";
 import BookingModal from "@/components/BookingModal";
 import {
   CATEGORY_ICONS, CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_BG,
-  formatAgeRange, type ListingCategory,
+  categoryLabel, formatAgeRange, type ListingCategory,
 } from "@/types";
 
 const MapPanel = dynamic(() => import("./MapPanel"), {
@@ -27,7 +27,7 @@ interface Provider {
   description:string|null; phone:string|null; website:string|null; isClaimed:boolean;
 }
 export interface Listing {
-  id:string; title:string; description:string; category:ListingCategory;
+  id:string; title:string; description:string; descriptionDe:string|null; category:ListingCategory;
   ageMinMonths:number; ageMaxMonths:number; price:number; pricePer:string;
   address:string|null; city:string|null; scheduleNotes:string|null;
   datePeriods:string|null; availableTimes:string|null; maxParticipants:number|null;
@@ -61,8 +61,21 @@ const DIST_OPTS = [
 
 const PER_DE:Record<string,string> = { SESSION:"/ Einheit", MONTH:"/ Monat", WEEK:"/ Woche", YEAR:"/ Jahr" };
 const PER_EN:Record<string,string> = { SESSION:"/ session", MONTH:"/ month", WEEK:"/ week",  YEAR:"/ year"  };
-function perLabel(pricePer:string, lang:string) {
+function perLabel(pricePer:string, lang:Lang) {
   return (lang==="de" ? PER_DE : PER_EN)[pricePer] ?? `/ ${pricePer.toLowerCase()}`;
+}
+
+const DAY_MAP: Record<string, string> = {
+  monday:"Montag", mondays:"Montags", tuesday:"Dienstag", tuesdays:"Dienstags",
+  wednesday:"Mittwoch", wednesdays:"Mittwochs", thursday:"Donnerstag", thursdays:"Donnerstags",
+  friday:"Freitag", fridays:"Freitags", saturday:"Samstag", saturdays:"Samstags",
+  sunday:"Sonntag", sundays:"Sonntags",
+};
+const DAY_RE = /\b(mondays?|tuesdays?|wednesdays?|thursdays?|fridays?|saturdays?|sundays?)\b/gi;
+
+function locSchedule(text: string, lang: Lang): string {
+  if (lang !== "de") return text;
+  return text.replace(DAY_RE, m => DAY_MAP[m.toLowerCase()] ?? m);
 }
 
 function dKm(la1:number, lo1:number, la2:number, lo2:number) {
@@ -73,7 +86,7 @@ function dKm(la1:number, lo1:number, la2:number, lo2:number) {
 function bandFor(m:number){ return AGE_BANDS.find(b=>m>=b.min&&m<=b.max)??null; }
 
 /* ─── Detail Modal ───────────────────────────────────────────────────────── */
-function Modal({ listing, onClose, lang }:{ listing:Listing; onClose:()=>void; lang:string }) {
+function Modal({ listing, onClose, lang }:{ listing:Listing; onClose:()=>void; lang:Lang }) {
   const color = CATEGORY_COLORS[listing.category] ?? "#3b82f6";
   const bg    = CATEGORY_BG[listing.category]    ?? "#eff6ff";
   const p     = listing.providerProfile;
@@ -110,7 +123,7 @@ function Modal({ listing, onClose, lang }:{ listing:Listing; onClose:()=>void; l
           display:"flex", alignItems:"center", justifyContent:"center", fontSize:100,
         }}>
           {listing.imageUrl
-            ? <img src={listing.imageUrl} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
+            ? <img src={listing.imageUrl} alt="" loading="lazy" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
             : <span style={{ position:"relative", zIndex:1, filter:"drop-shadow(0 6px 16px rgba(0,0,0,0.18))" }}>{CATEGORY_ICONS[listing.category]}</span>}
           <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top,rgba(0,0,0,0.28),transparent)" }} />
           {/* Close */}
@@ -128,7 +141,7 @@ function Modal({ listing, onClose, lang }:{ listing:Listing; onClose:()=>void; l
             borderRadius:26, background:color, color:"white",
             boxShadow:"0 3px 12px rgba(0,0,0,0.22)",
           }}>
-            {CATEGORY_ICONS[listing.category]} {CATEGORY_LABELS[listing.category]}
+            {CATEGORY_ICONS[listing.category]} {categoryLabel(listing.category, lang)}
           </span>
         </div>
 
@@ -142,7 +155,7 @@ function Modal({ listing, onClose, lang }:{ listing:Listing; onClose:()=>void; l
                 {listing.title}
               </h2>
               <p style={{ fontSize:19, color:"#64748b", margin:0, fontWeight:500 }}>
-                von <strong style={{ color:"#334155" }}>{p.businessName}</strong>
+                {lang === "de" ? "von" : "by"} <strong style={{ color:"#334155" }}>{p.businessName}</strong>
               </p>
             </div>
             <span style={{
@@ -163,23 +176,25 @@ function Modal({ listing, onClose, lang }:{ listing:Listing; onClose:()=>void; l
           }}>
             <div>
               <div style={{ fontSize:52, fontWeight:900, color, lineHeight:1 }}>
-                {listing.price%1===0 ? listing.price : listing.price.toFixed(2)} €
+                {Number(listing.price) === 0 ? t("free", lang) : `${listing.price%1===0 ? listing.price : listing.price.toFixed(2)} €`}
               </div>
-              <div style={{ fontSize:21, fontWeight:700, color, marginTop:6 }}>
-                {perLabel(listing.pricePer, lang)}
-              </div>
+              {Number(listing.price) !== 0 && (
+                <div style={{ fontSize:21, fontWeight:700, color, marginTop:6 }}>
+                  {perLabel(listing.pricePer, lang)}
+                </div>
+              )}
             </div>
             <div style={{ flex:1, borderLeft:`2px solid ${color}33`, paddingLeft:28 }}>
               {listing.scheduleNotes && (
                 <p style={{ margin:"0 0 7px", fontSize:17, fontWeight:600, color:"#334155" }}>
-                  📅 {listing.scheduleNotes}
+                  📅 {locSchedule(listing.scheduleNotes, lang)}
                 </p>
               )}
               {listing.datePeriods && (
-                <p style={{ margin:"0 0 7px", fontSize:16, color:"#64748b" }}>🗓 {listing.datePeriods}</p>
+                <p style={{ margin:"0 0 7px", fontSize:16, color:"#64748b" }}>🗓 {locSchedule(listing.datePeriods, lang)}</p>
               )}
               {listing.availableTimes && (
-                <p style={{ margin:0, fontSize:16, color:"#64748b" }}>🕐 {listing.availableTimes}</p>
+                <p style={{ margin:0, fontSize:16, color:"#64748b" }}>🕐 {locSchedule(listing.availableTimes, lang)}</p>
               )}
             </div>
           </div>
@@ -207,7 +222,7 @@ function Modal({ listing, onClose, lang }:{ listing:Listing; onClose:()=>void; l
               {lang==="de"?"Über diese Aktivität":"About this activity"}
             </h3>
             <p style={{ fontSize:18, color:"#475569", lineHeight:1.8, margin:0 }}>
-              {listing.description}
+              {lang === "de" ? listing.descriptionDe ?? listing.description : listing.description}
             </p>
           </div>
 
@@ -222,7 +237,7 @@ function Modal({ listing, onClose, lang }:{ listing:Listing; onClose:()=>void; l
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:32, flexShrink:0, overflow:"hidden",
             }}>
-              {p.logoUrl ? <img src={p.logoUrl} style={{ width:"100%", height:"100%", objectFit:"cover" }} alt="" /> : "🏫"}
+              {p.logoUrl ? <img src={p.logoUrl} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover" }} alt="" /> : "🏫"}
             </div>
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap", marginBottom:8 }}>
@@ -280,7 +295,7 @@ function Modal({ listing, onClose, lang }:{ listing:Listing; onClose:()=>void; l
 function Card({ listing, active, hovered, onClick, onEnter, onLeave, lang, userPos }:{
   listing:Listing; active:boolean; hovered:boolean;
   onClick:()=>void; onEnter:()=>void; onLeave:()=>void;
-  lang:string; userPos:{lat:number;lng:number}|null;
+  lang:Lang; userPos:{lat:number;lng:number}|null;
 }) {
   const color = CATEGORY_COLORS[listing.category] ?? "#3b82f6";
   const bg    = CATEGORY_BG[listing.category]    ?? "#eff6ff";
@@ -318,7 +333,7 @@ function Card({ listing, active, hovered, onClick, onEnter, onLeave, lang, userP
             fontSize:10, fontWeight:800, letterSpacing:0.3,
             background:`${color}ee`, color:"white", lineHeight:1.5,
           }}>
-            {CATEGORY_LABELS[listing.category].toUpperCase()}
+            {categoryLabel(listing.category, lang).toUpperCase()}
           </span>
         </div>
 
@@ -342,10 +357,13 @@ function Card({ listing, active, hovered, onClick, onEnter, onLeave, lang, userP
               borderRadius:12, padding:"5px 10px",
             }}>
               <div style={{ fontSize:18, fontWeight:900, color, lineHeight:1.1, whiteSpace:"nowrap" }}>
-                {listing.price%1===0 ? listing.price : listing.price.toFixed(0)} €
-                <span style={{ fontSize:11, fontWeight:600, color:"#94a3b8", marginLeft:3 }}>
-                  {perLabel(listing.pricePer, lang)}
-                </span>
+                {Number(listing.price) === 0
+                  ? t("free", lang)
+                  : <>{listing.price%1===0 ? listing.price : listing.price.toFixed(0)} €
+                    <span style={{ fontSize:11, fontWeight:600, color:"#94a3b8", marginLeft:3 }}>
+                      {perLabel(listing.pricePer, lang)}
+                    </span>
+                  </>}
               </div>
               <div style={{ fontSize:11, fontWeight:700, color, marginTop:2, whiteSpace:"nowrap" }}>
                 👶 {formatAgeRange(listing.ageMinMonths, listing.ageMaxMonths)}
@@ -363,12 +381,12 @@ function Card({ listing, active, hovered, onClick, onEnter, onLeave, lang, userP
           <div style={{ display:"flex", flexWrap:"wrap", gap:"3px 12px", fontSize:12, color:"#64748b", marginBottom:8 }}>
             {listing.address&&<span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:160 }}>📍 {listing.address}</span>}
             {dist!==null&&<span style={{ color, fontWeight:700 }}>📡 {dist<1?`${(dist*1000).toFixed(0)} m`:`${dist.toFixed(1)} km`}</span>}
-            {listing.availableTimes&&<span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>🕐 {listing.availableTimes}</span>}
+            {listing.availableTimes&&<span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>🕐 {locSchedule(listing.availableTimes, lang)}</span>}
           </div>
 
           {/* Description snippet */}
           <p style={{ fontSize:12, color:"#94a3b8", margin:"0 0 10px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>
-            {listing.description}
+            {lang === "de" ? listing.descriptionDe ?? listing.description : listing.description}
           </p>
 
           {/* CTA */}
@@ -556,7 +574,7 @@ export default function ListingsClient({ initialListings, mapboxToken, initialAg
           return (
             <button key={cat} onClick={()=>toggleCat(cat)} style={pill(a,co,cbg)}>
               <span style={{ fontSize:14 }}>{CATEGORY_ICONS[cat]}</span>
-              <span>{CATEGORY_LABELS[cat]}</span>
+              <span>{categoryLabel(cat, lang)}</span>
               {a&&<span style={{ fontSize:12, opacity:.8 }}>✓</span>}
             </button>
           );

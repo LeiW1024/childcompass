@@ -31,15 +31,18 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => null);
     if (!body) return NextResponse.json({ data: null, error: "Invalid request" }, { status: 400 });
 
-    const { firstName, dateOfBirth } = body;
+    const { firstName, gender, dateOfBirth } = body;
     if (!firstName?.trim()) return NextResponse.json({ data: null, error: "First name required" }, { status: 400 });
     if (!dateOfBirth) return NextResponse.json({ data: null, error: "Date of birth required" }, { status: 400 });
 
     const dob = new Date(dateOfBirth);
     if (isNaN(dob.getTime())) return NextResponse.json({ data: null, error: "Invalid date" }, { status: 400 });
 
+    const validGenders = ["male", "female"];
+    const safeGender = validGenders.includes(gender) ? gender : null;
+
     const child = await prisma.child.create({
-      data: { firstName: firstName.trim(), dateOfBirth: dob, parentId: profile.id },
+      data: { firstName: firstName.trim(), gender: safeGender, dateOfBirth: dob, parentId: profile.id },
     });
     return NextResponse.json({ data: child, error: null }, { status: 201 });
   } catch (err) {

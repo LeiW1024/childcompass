@@ -1,7 +1,6 @@
 // app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
-import "mapbox-gl/dist/mapbox-gl.css";
 import { LangProvider } from "@/components/ui/LanguageSwitcher";
 
 export const metadata: Metadata = {

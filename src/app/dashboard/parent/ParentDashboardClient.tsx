@@ -40,7 +40,6 @@ const PER_EN: Record<string, string> = { SESSION:"/ session", MONTH:"/ month", W
 const GENDER_OPTS = [
   { v:"male",   de:"Junge 👦",    en:"Boy 👦"   },
   { v:"female", de:"Mädchen 👧", en:"Girl 👧"  },
-  { v:"other",  de:"Divers 🌈",   en:"Other 🌈" },
 ];
 
 function ageStr(dob: string) {
@@ -260,7 +259,7 @@ function BookingDetailModal({ booking, onClose }: { booking: Booking; onClose: (
               booking.listing.availableTimes && ["🕐 Zeiten", booking.listing.availableTimes],
               booking.listing.datePeriods && ["🗓 Zeitraum", booking.listing.datePeriods],
               booking.listing.maxParticipants && ["👥 Plätze", `Max. ${booking.listing.maxParticipants} Kinder`],
-              ["💶 Preis", `${booking.listing.price} € ${PER_DE[booking.listing.pricePer] ?? ""}`],
+              ["💶 Preis", Number(booking.listing.price) === 0 ? "k.A." : `${booking.listing.price} € ${PER_DE[booking.listing.pricePer] ?? ""}`],
             ].filter(Boolean).map((row) => {
               const r = row as [string, string | number];
               return (
@@ -617,7 +616,7 @@ export default function ParentDashboardClient({
                       </p>
                       <div style={{ display:"flex", gap:12, marginTop:5, fontSize:12, color:"#94a3b8" }}>
                         <span>👶 {b.child.firstName}</span>
-                        <span>💶 {b.listing.price} € {PER_DE[b.listing.pricePer] ?? ""}</span>
+                        <span>💶 {Number(b.listing.price) === 0 ? "k.A." : `${b.listing.price} € ${PER_DE[b.listing.pricePer] ?? ""}`}</span>
                         {b.listing.availableTimes && <span>🕐 {b.listing.availableTimes}</span>}
                       </div>
                     </div>
