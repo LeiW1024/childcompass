@@ -1,0 +1,86 @@
+{
+  "name": "ChildCompass Support Classifier",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "support-chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "support-chat"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful support assistant for ChildCompass, a platform that helps parents find childcare activities for children ages 0-6.\n\nClassify the user's message into one of these categories:\n- booking_help: Questions about booking, scheduling, or reservations\n- account_issue: Login problems, profile updates, password resets\n- provider_inquiry: Questions about becoming a provider or managing listings\n- general_question: General questions about the platform or childcare activities\n- bug_report: Technical issues, errors, or unexpected behavior\n\nRespond in a JSON object with two fields:\n- \"category\": one of the categories above\n- \"reply\": a helpful, friendly response to the user's message (2-3 sentences max)\n\nIf the user writes in German, respond in German. Otherwise respond in English.\n\nContext available:\n- User role: {{ $json.user.role || 'anonymous' }}\n- Current page: {{ $json.pageUrl }}\n- Language: {{ $json.lang }}"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.message }}",
+              "role": "user"
+            }
+          ]
+        }
+      },
+      "id": "ai-classification",
+      "name": "AI Classification",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.parse($json.message.content) }}",
+        "options": {}
+      },
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [750, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Classification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Classification": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": [
+    {
+      "name": "support"
+    }
+  ]
+}

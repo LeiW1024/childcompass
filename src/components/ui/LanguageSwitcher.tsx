@@ -69,6 +69,12 @@ export const LABELS: Record<string, Record<Lang, string>> = {
   by:                 { en: "by",                          de: "von" },
   free:               { en: "N/A",                         de: "k.A." },
   freeShort:          { en: "N/A",                         de: "k.A." },
+  // Chat widget
+  chatTitle:          { en: "Support",                     de: "Hilfe" },
+  chatWelcome:        { en: "Hi! How can we help you today?", de: "Hallo! Wie können wir Ihnen helfen?" },
+  chatPlaceholder:    { en: "Type your message...",        de: "Nachricht eingeben..." },
+  chatSend:           { en: "Send",                        de: "Senden" },
+  chatError:          { en: "Failed to send. Please try again.", de: "Senden fehlgeschlagen. Bitte erneut versuchen." },
 };
 
 export type LabelKey = keyof typeof LABELS;

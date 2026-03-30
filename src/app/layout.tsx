@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { LangProvider } from "@/components/ui/LanguageSwitcher";
+import ChatWidget from "@/components/chat/ChatWidget";
 
 export const metadata: Metadata = {
   title: { default: "ChildCompass", template: "%s | ChildCompass" },
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <LangProvider>
           {children}
+          <ChatWidget />
         </LangProvider>
       </body>
     </html>
