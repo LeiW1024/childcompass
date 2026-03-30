@@ -22,7 +22,7 @@
           "values": [
             {
               "role": "system",
-              "content": "You are a support classifier for ChildCompass, a platform that helps parents find childcare activities for children ages 0-6.\n\nClassify the user's message into exactly ONE category:\n- booking_help: Questions about booking, scheduling, or reservations\n- account_issue: Login problems, profile updates, password resets\n- provider_inquiry: Questions about becoming a provider or managing listings\n- general_question: General questions about the platform or childcare activities\n- bug_report: Technical issues, errors, or unexpected behavior\n\nUser context:\n- Role: {{ $json.user.role ?? 'anonymous' }}\n- Name: {{ $json.user.fullName ?? 'unknown' }}\n- Page: {{ $json.pageUrl }}\n- Language: {{ $json.lang }}\n\nRespond ONLY with valid JSON, no other text:\n{\"category\": \"<category>\", \"reply\": \"<helpful response in 2-3 sentences>\"}\n\nIf lang is 'de' or the user writes in German, reply in German."
+              "content": "You are a support classifier for ChildCompass, a platform that helps parents find childcare activities for children ages 0-6.\n\nClassify the user's message into exactly ONE category:\n- booking_help: Questions about booking, scheduling, or reservations\n- account_issue: Login problems, profile updates, password resets\n- general_question: Everything else — general questions, provider inquiries, bug reports, feedback\n\nUser context:\n- Role: {{ $json.user.role ?? 'anonymous' }}\n- Name: {{ $json.user.fullName ?? 'unknown' }}\n- Page: {{ $json.pageUrl }}\n- Language: {{ $json.lang }}\n\nRespond ONLY with valid JSON, no other text:\n{\"category\": \"<category>\", \"reply\": \"<helpful response in 2-3 sentences>\"}\n\nIf lang is 'de' or the user writes in German, reply in German."
             },
             {
               "role": "user",
@@ -88,32 +88,6 @@
                 ]
               },
               "renameOutput": "Account Issue"
-            },
-            {
-              "conditions": {
-                "options": { "caseSensitive": false },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.parsed.category }}",
-                    "rightValue": "provider_inquiry",
-                    "operator": { "type": "string", "operation": "equals" }
-                  }
-                ]
-              },
-              "renameOutput": "Provider Inquiry"
-            },
-            {
-              "conditions": {
-                "options": { "caseSensitive": false },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.parsed.category }}",
-                    "rightValue": "bug_report",
-                    "operator": { "type": "string", "operation": "equals" }
-                  }
-                ]
-              },
-              "renameOutput": "Bug Report"
             }
           ],
           "fallbackOutput": "General Question"
@@ -136,7 +110,7 @@
       "name": "Action: Booking Help",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1240, 160]
+      "position": [1240, 240]
     },
     {
       "parameters": {
@@ -148,31 +122,7 @@
       "name": "Action: Account Issue",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1240, 320]
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ reply: $json.parsed.reply, category: 'provider_inquiry' }) }}",
-        "options": {}
-      },
-      "id": "a1b2c3d4-0001-4000-8000-000000000007",
-      "name": "Action: Provider Inquiry",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.1,
-      "position": [1240, 480]
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ reply: $json.parsed.reply, category: 'bug_report' }) }}",
-        "options": {}
-      },
-      "id": "a1b2c3d4-0001-4000-8000-000000000008",
-      "name": "Action: Bug Report",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.1,
-      "position": [1240, 640]
+      "position": [1240, 400]
     },
     {
       "parameters": {
@@ -180,11 +130,11 @@
         "responseBody": "={{ JSON.stringify({ reply: $json.parsed.reply, category: 'general_question' }) }}",
         "options": {}
       },
-      "id": "a1b2c3d4-0001-4000-8000-000000000009",
+      "id": "a1b2c3d4-0001-4000-8000-000000000007",
       "name": "Action: General Question",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1240, 800]
+      "position": [1240, 560]
     }
   ],
   "connections": {
@@ -233,20 +183,6 @@
         [
           {
             "node": "Action: Account Issue",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Action: Provider Inquiry",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Action: Bug Report",
             "type": "main",
             "index": 0
           }
