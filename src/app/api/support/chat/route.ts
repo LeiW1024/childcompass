@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { profileRepo } from "@/lib/prisma/repositories";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { message, sessionId, pageUrl, lang } = body;
+    const { message } = body;
 
     // Validate message
     if (!message || typeof message !== "string" || message.trim().length === 0) {
@@ -22,42 +20,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Attempt to get authenticated user (optional — anonymous allowed)
-    let user: { id: string | null; email: string | null; fullName: string | null; role: string | null } = {
-      id: null,
-      email: null,
-      fullName: null,
-      role: null,
-    };
-
-    try {
-      const supabase = createClient();
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-
-      if (authUser) {
-        const profile = await profileRepo.findBySupabaseId(authUser.id);
-        if (profile) {
-          user = {
-            id: profile.id,
-            email: profile.email,
-            fullName: profile.fullName,
-            role: profile.role,
-          };
-        }
-      }
-    } catch {
-      // Auth lookup failed — proceed as anonymous
-    }
-
-    // Build enriched payload for n8n
+    // Build payload — minimum structure for n8n
     const payload = {
       message: message.trim(),
-      sessionId: sessionId || "unknown",
-      timestamp: new Date().toISOString(),
-      user,
-      pageUrl: pageUrl || "",
-      lang: lang || "en",
-      source: "childcompass-chat-widget",
     };
 
     // Forward to n8n webhook
@@ -85,9 +50,10 @@ export async function POST(req: NextRequest) {
     }
 
     const n8nData = await n8nResponse.json();
-    const reply = n8nData?.reply || n8nData?.message || "Thank you for your message. We'll get back to you soon.";
+    const reply = n8nData?.reply || "Thank you for your message. We'll get back to you soon.";
+    const category = n8nData?.category || "general_question";
 
-    return NextResponse.json({ data: { reply }, error: null });
+    return NextResponse.json({ data: { reply, category }, error: null });
   } catch (err) {
     console.error("[POST /api/support/chat]", err);
     return NextResponse.json(

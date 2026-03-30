@@ -3,20 +3,12 @@
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, Send, X } from "lucide-react";
 import { useLang, t } from "@/components/ui/LanguageSwitcher";
-import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils/cn";
 
 interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
-}
-
-interface UserContext {
-  id: string | null;
-  email: string | null;
-  fullName: string | null;
-  role: string | null;
 }
 
 export default function ChatWidget() {
@@ -27,29 +19,8 @@ export default function ChatWidget() {
   const [error, setError] = useState<string | null>(null);
 
   const { lang } = useLang();
-  const sessionIdRef = useRef<string>("");
-  const userRef = useRef<UserContext | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Generate session ID and fetch user context on mount
-  useEffect(() => {
-    sessionIdRef.current = crypto.randomUUID();
-
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        userRef.current = {
-          id: user.id,
-          email: user.email ?? null,
-          fullName: user.user_metadata?.full_name ?? null,
-          role: user.user_metadata?.role ?? null,
-        };
-      }
-    }).catch(() => {
-      // Anonymous user — no action needed
-    });
-  }, []);
 
   // Add welcome message when first opened
   useEffect(() => {
@@ -97,9 +68,6 @@ export default function ChatWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: trimmed,
-          sessionId: sessionIdRef.current,
-          pageUrl: window.location.href,
-          lang,
         }),
       });
 

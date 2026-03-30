@@ -9,7 +9,7 @@
         "options": {}
       },
       "id": "webhook-trigger",
-      "name": "Webhook Trigger",
+      "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [250, 300],
@@ -18,12 +18,12 @@
     {
       "parameters": {
         "options": {
-          "systemMessage": "You are a helpful support assistant for ChildCompass, a platform that helps parents find childcare activities for children ages 0-6.\n\nClassify the user's message into one of these categories:\n- booking_help: Questions about booking, scheduling, or reservations\n- account_issue: Login problems, profile updates, password resets\n- provider_inquiry: Questions about becoming a provider or managing listings\n- general_question: General questions about the platform or childcare activities\n- bug_report: Technical issues, errors, or unexpected behavior\n\nRespond in a JSON object with two fields:\n- \"category\": one of the categories above\n- \"reply\": a helpful, friendly response to the user's message (2-3 sentences max)\n\nIf the user writes in German, respond in German. Otherwise respond in English.\n\nContext available:\n- User role: {{ $json.user.role || 'anonymous' }}\n- Current page: {{ $json.pageUrl }}\n- Language: {{ $json.lang }}"
+          "systemMessage": "You are a support classifier for ChildCompass, a platform that helps parents find childcare activities for children ages 0-6.\n\nClassify the user's message into exactly ONE of these categories:\n- booking_help\n- account_issue\n- provider_inquiry\n- general_question\n- bug_report\n\nRespond ONLY with a valid JSON object, no other text:\n{\n  \"category\": \"<one of the categories above>\",\n  \"reply\": \"<a helpful, friendly response in 2-3 sentences>\"\n}\n\nIf the user writes in German, reply in German. Otherwise reply in English."
         },
         "messages": {
           "values": [
             {
-              "content": "={{ $json.message }}",
+              "content": "={{ $json.body.message }}",
               "role": "user"
             }
           ]
@@ -37,19 +37,142 @@
     },
     {
       "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ JSON.parse($json.message.content) }}",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ JSON.parse($json.message.content).category }}",
+                    "rightValue": "booking_help",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": "Booking Help"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ JSON.parse($json.message.content).category }}",
+                    "rightValue": "account_issue",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": "Account Issue"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ JSON.parse($json.message.content).category }}",
+                    "rightValue": "provider_inquiry",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": "Provider Inquiry"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ JSON.parse($json.message.content).category }}",
+                    "rightValue": "bug_report",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": "Bug Report"
+            }
+          ],
+          "fallbackOutput": "General Question"
+        },
         "options": {}
       },
-      "id": "respond-webhook",
-      "name": "Respond to Webhook",
+      "id": "switch-category",
+      "name": "Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [750, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"reply\": {{ JSON.parse($json.message.content).reply }},\n  \"category\": \"booking_help\"\n}",
+        "options": {}
+      },
+      "id": "action-booking",
+      "name": "Reply Booking",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [750, 300]
+      "position": [1000, 100]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"reply\": {{ JSON.parse($json.message.content).reply }},\n  \"category\": \"account_issue\"\n}",
+        "options": {}
+      },
+      "id": "action-account",
+      "name": "Reply Account",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1000, 250]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"reply\": {{ JSON.parse($json.message.content).reply }},\n  \"category\": \"provider_inquiry\"\n}",
+        "options": {}
+      },
+      "id": "action-provider",
+      "name": "Reply Provider",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"reply\": {{ JSON.parse($json.message.content).reply }},\n  \"category\": \"bug_report\"\n}",
+        "options": {}
+      },
+      "id": "action-bug",
+      "name": "Reply Bug",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1000, 550]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"reply\": {{ JSON.parse($json.message.content).reply }},\n  \"category\": \"general_question\"\n}",
+        "options": {}
+      },
+      "id": "action-general",
+      "name": "Reply General",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1000, 700]
     }
   ],
   "connections": {
-    "Webhook Trigger": {
+    "Webhook": {
       "main": [
         [
           {
@@ -64,7 +187,46 @@
       "main": [
         [
           {
-            "node": "Respond to Webhook",
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Reply Booking",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reply Account",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reply Provider",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reply Bug",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reply General",
             "type": "main",
             "index": 0
           }
