@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, Send, X } from "lucide-react";
 import { useLang, t } from "@/components/ui/LanguageSwitcher";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils/cn";
 
 interface ChatMessage {
@@ -19,8 +20,14 @@ export default function ChatWidget() {
   const [error, setError] = useState<string | null>(null);
 
   const { lang } = useLang();
+  const sessionIdRef = useRef<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Generate session ID on mount
+  useEffect(() => {
+    sessionIdRef.current = crypto.randomUUID();
+  }, []);
 
   // Add welcome message when first opened
   useEffect(() => {
@@ -68,6 +75,9 @@ export default function ChatWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: trimmed,
+          sessionId: sessionIdRef.current,
+          pageUrl: window.location.href,
+          lang,
         }),
       });
 
