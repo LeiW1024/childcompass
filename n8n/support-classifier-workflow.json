@@ -8,32 +8,56 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "webhook-trigger",
+      "id": "a1b2c3d4-0001-4000-8000-000000000001",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [250, 300],
+      "position": [240, 400],
       "webhookId": "support-chat"
     },
     {
       "parameters": {
-        "options": {
-          "systemMessage": "You are a support classifier for ChildCompass, a platform that helps parents find childcare activities for children ages 0-6.\n\nClassify the user's message into exactly ONE of these categories:\n- booking_help: Questions about booking, scheduling, or reservations\n- account_issue: Login problems, profile updates, password resets\n- provider_inquiry: Questions about becoming a provider or managing listings\n- general_question: General questions about the platform or childcare activities\n- bug_report: Technical issues, errors, or unexpected behavior\n\nContext about the user:\n- User role: {{ $json.body.user.role || 'anonymous' }}\n- User name: {{ $json.body.user.fullName || 'unknown' }}\n- Current page: {{ $json.body.pageUrl }}\n- Language: {{ $json.body.lang }}\n- Session: {{ $json.body.sessionId }}\n\nRespond ONLY with a valid JSON object, no other text:\n{\n  \"category\": \"<one of the categories above>\",\n  \"reply\": \"<a helpful, friendly response in 2-3 sentences>\"\n}\n\nIf the language is 'de' or the user writes in German, reply in German. Otherwise reply in English."
-        },
+        "model": "gpt-4o-mini",
         "messages": {
           "values": [
             {
-              "content": "={{ $json.body.message }}",
-              "role": "user"
+              "role": "system",
+              "content": "You are a support classifier for ChildCompass, a platform that helps parents find childcare activities for children ages 0-6.\n\nClassify the user's message into exactly ONE category:\n- booking_help: Questions about booking, scheduling, or reservations\n- account_issue: Login problems, profile updates, password resets\n- provider_inquiry: Questions about becoming a provider or managing listings\n- general_question: General questions about the platform or childcare activities\n- bug_report: Technical issues, errors, or unexpected behavior\n\nUser context:\n- Role: {{ $json.user.role ?? 'anonymous' }}\n- Name: {{ $json.user.fullName ?? 'unknown' }}\n- Page: {{ $json.pageUrl }}\n- Language: {{ $json.lang }}\n\nRespond ONLY with valid JSON, no other text:\n{\"category\": \"<category>\", \"reply\": \"<helpful response in 2-3 sentences>\"}\n\nIf lang is 'de' or the user writes in German, reply in German."
+            },
+            {
+              "role": "user",
+              "content": "={{ $json.message }}"
             }
           ]
+        },
+        "options": {
+          "temperature": 0.3
         }
       },
-      "id": "ai-classification",
+      "id": "a1b2c3d4-0001-4000-8000-000000000002",
       "name": "AI Classification",
-      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "type": "n8n-nodes-base.openAi",
       "typeVersion": 1.8,
-      "position": [500, 300]
+      "position": [480, 400],
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "jsonParse",
+        "jsonParseField": "content",
+        "destinationFieldName": "parsed",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000003",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [720, 400]
     },
     {
       "parameters": {
@@ -41,14 +65,12 @@
           "values": [
             {
               "conditions": {
+                "options": { "caseSensitive": false },
                 "conditions": [
                   {
-                    "leftValue": "={{ JSON.parse($json.message.content).category }}",
+                    "leftValue": "={{ $json.parsed.category }}",
                     "rightValue": "booking_help",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
+                    "operator": { "type": "string", "operation": "equals" }
                   }
                 ]
               },
@@ -56,14 +78,12 @@
             },
             {
               "conditions": {
+                "options": { "caseSensitive": false },
                 "conditions": [
                   {
-                    "leftValue": "={{ JSON.parse($json.message.content).category }}",
+                    "leftValue": "={{ $json.parsed.category }}",
                     "rightValue": "account_issue",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
+                    "operator": { "type": "string", "operation": "equals" }
                   }
                 ]
               },
@@ -71,14 +91,12 @@
             },
             {
               "conditions": {
+                "options": { "caseSensitive": false },
                 "conditions": [
                   {
-                    "leftValue": "={{ JSON.parse($json.message.content).category }}",
+                    "leftValue": "={{ $json.parsed.category }}",
                     "rightValue": "provider_inquiry",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
+                    "operator": { "type": "string", "operation": "equals" }
                   }
                 ]
               },
@@ -86,14 +104,12 @@
             },
             {
               "conditions": {
+                "options": { "caseSensitive": false },
                 "conditions": [
                   {
-                    "leftValue": "={{ JSON.parse($json.message.content).category }}",
+                    "leftValue": "={{ $json.parsed.category }}",
                     "rightValue": "bug_report",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
+                    "operator": { "type": "string", "operation": "equals" }
                   }
                 ]
               },
@@ -104,71 +120,71 @@
         },
         "options": {}
       },
-      "id": "switch-category",
+      "id": "a1b2c3d4-0001-4000-8000-000000000004",
       "name": "Switch",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
-      "position": [750, 300]
+      "position": [960, 400]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\n  \"reply\": {{ JSON.parse($json.message.content).reply }},\n  \"category\": \"booking_help\"\n}",
+        "responseBody": "={{ JSON.stringify({ reply: $json.parsed.reply, category: 'booking_help' }) }}",
         "options": {}
       },
-      "id": "action-booking",
-      "name": "Reply Booking",
+      "id": "a1b2c3d4-0001-4000-8000-000000000005",
+      "name": "Action: Booking Help",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1000, 100]
+      "position": [1240, 160]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\n  \"reply\": {{ JSON.parse($json.message.content).reply }},\n  \"category\": \"account_issue\"\n}",
+        "responseBody": "={{ JSON.stringify({ reply: $json.parsed.reply, category: 'account_issue' }) }}",
         "options": {}
       },
-      "id": "action-account",
-      "name": "Reply Account",
+      "id": "a1b2c3d4-0001-4000-8000-000000000006",
+      "name": "Action: Account Issue",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1000, 250]
+      "position": [1240, 320]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\n  \"reply\": {{ JSON.parse($json.message.content).reply }},\n  \"category\": \"provider_inquiry\"\n}",
+        "responseBody": "={{ JSON.stringify({ reply: $json.parsed.reply, category: 'provider_inquiry' }) }}",
         "options": {}
       },
-      "id": "action-provider",
-      "name": "Reply Provider",
+      "id": "a1b2c3d4-0001-4000-8000-000000000007",
+      "name": "Action: Provider Inquiry",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1000, 400]
+      "position": [1240, 480]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\n  \"reply\": {{ JSON.parse($json.message.content).reply }},\n  \"category\": \"bug_report\"\n}",
+        "responseBody": "={{ JSON.stringify({ reply: $json.parsed.reply, category: 'bug_report' }) }}",
         "options": {}
       },
-      "id": "action-bug",
-      "name": "Reply Bug",
+      "id": "a1b2c3d4-0001-4000-8000-000000000008",
+      "name": "Action: Bug Report",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1000, 550]
+      "position": [1240, 640]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\n  \"reply\": {{ JSON.parse($json.message.content).reply }},\n  \"category\": \"general_question\"\n}",
+        "responseBody": "={{ JSON.stringify({ reply: $json.parsed.reply, category: 'general_question' }) }}",
         "options": {}
       },
-      "id": "action-general",
-      "name": "Reply General",
+      "id": "a1b2c3d4-0001-4000-8000-000000000009",
+      "name": "Action: General Question",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1000, 700]
+      "position": [1240, 800]
     }
   ],
   "connections": {
@@ -187,6 +203,17 @@
       "main": [
         [
           {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
             "node": "Switch",
             "type": "main",
             "index": 0
@@ -198,35 +225,35 @@
       "main": [
         [
           {
-            "node": "Reply Booking",
+            "node": "Action: Booking Help",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Reply Account",
+            "node": "Action: Account Issue",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Reply Provider",
+            "node": "Action: Provider Inquiry",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Reply Bug",
+            "node": "Action: Bug Report",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Reply General",
+            "node": "Action: General Question",
             "type": "main",
             "index": 0
           }
