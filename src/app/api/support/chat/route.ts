@@ -84,9 +84,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const n8nData = await n8nResponse.json();
-    const reply = n8nData?.reply || "Thank you for your message. We'll get back to you soon.";
-    const category = n8nData?.category || "general_question";
+    const responseText = await n8nResponse.text();
+    let reply = "Thank you for your message. We'll get back to you soon.";
+    let category = "general_question";
+
+    if (responseText) {
+      try {
+        const n8nRaw = JSON.parse(responseText);
+        // n8n respondWith:"allIncomingItems" returns an array
+        const n8nData = Array.isArray(n8nRaw) ? n8nRaw[0] : n8nRaw;
+        reply = n8nData?.reply || reply;
+        category = n8nData?.category || category;
+      } catch {
+        console.error("[POST /api/support/chat] Failed to parse n8n response:", responseText);
+      }
+    }
 
     return NextResponse.json({ data: { reply, category }, error: null });
   } catch (err) {

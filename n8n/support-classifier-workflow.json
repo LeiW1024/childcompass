@@ -17,40 +17,57 @@
     },
     {
       "parameters": {
-        "model": "gpt-4o-mini",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-1.5-flash",
+          "mode": "id"
+        },
         "messages": {
           "values": [
             {
-              "role": "system",
-              "content": "You are a support classifier for ChildCompass, a platform that helps parents find childcare activities for children ages 0-6.\n\nClassify the user's message into exactly ONE category:\n- booking_help: Questions about booking, scheduling, or reservations\n- account_issue: Login problems, profile updates, password resets\n- general_question: Everything else — general questions, provider inquiries, bug reports, feedback\n\nUser context:\n- Role: {{ $json.user.role ?? 'anonymous' }}\n- Name: {{ $json.user.fullName ?? 'unknown' }}\n- Page: {{ $json.pageUrl }}\n- Language: {{ $json.lang }}\n\nRespond ONLY with valid JSON, no other text:\n{\"category\": \"<category>\", \"reply\": \"<helpful response in 2-3 sentences>\"}\n\nIf lang is 'de' or the user writes in German, reply in German."
-            },
-            {
-              "role": "user",
-              "content": "={{ $json.message }}"
+              "content": "={{ $json.body.message }}",
+              "role": "user"
             }
           ]
         },
+        "simplify": true,
+        "jsonOutput": true,
         "options": {
-          "temperature": 0.3
+          "systemMessage": "You are a support classifier for ChildCompass, a platform that helps parents find childcare activities for children ages 0-6.\n\nClassify the user's message into exactly ONE of these categories:\n- booking_help: Questions about booking, scheduling, or reservations\n- account_issue: Login problems, profile updates, password resets, account questions\n- general_question: Everything else\n\nYou MUST respond with ONLY this exact JSON format, no other text, no markdown:\n{\"category\": \"account_issue\", \"reply\": \"your reply here\"}\n\nThe category value MUST be one of: booking_help, account_issue, general_question\n\nIf the user writes in German, reply in German.",
+          "temperature": 0.1,
+          "maxOutputTokens": 1024
         }
       },
       "id": "a1b2c3d4-0001-4000-8000-000000000002",
       "name": "AI Classification",
-      "type": "n8n-nodes-base.openAi",
-      "typeVersion": 1.8,
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
       "position": [480, 400],
       "credentials": {
-        "openAiApi": {
+        "googleGeminiApi": {
           "id": "",
-          "name": "OpenAI API"
+          "name": "Google Gemini API"
         }
       }
     },
     {
       "parameters": {
-        "mode": "jsonParse",
-        "jsonParseField": "content",
-        "destinationFieldName": "parsed",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "parse-reply",
+              "name": "reply",
+              "value": "={{ JSON.parse($json.content.parts[0].text).reply }}",
+              "type": "string"
+            },
+            {
+              "id": "parse-category",
+              "name": "category",
+              "value": "={{ JSON.parse($json.content.parts[0].text).category }}",
+              "type": "string"
+            }
+          ]
+        },
         "options": {}
       },
       "id": "a1b2c3d4-0001-4000-8000-000000000003",
@@ -65,34 +82,53 @@
           "values": [
             {
               "conditions": {
-                "options": { "caseSensitive": false },
+                "options": {
+                  "caseSensitive": false,
+                  "typeValidation": "loose",
+                  "version": 2
+                },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.parsed.category }}",
+                    "id": "cond-booking",
+                    "leftValue": "={{ $json.category }}",
                     "rightValue": "booking_help",
-                    "operator": { "type": "string", "operation": "equals" }
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
                   }
-                ]
+                ],
+                "combinator": "and"
               },
               "renameOutput": "Booking Help"
             },
             {
               "conditions": {
-                "options": { "caseSensitive": false },
+                "options": {
+                  "caseSensitive": false,
+                  "typeValidation": "loose",
+                  "version": 2
+                },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.parsed.category }}",
+                    "id": "cond-account",
+                    "leftValue": "={{ $json.category }}",
                     "rightValue": "account_issue",
-                    "operator": { "type": "string", "operation": "equals" }
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
                   }
-                ]
+                ],
+                "combinator": "and"
               },
               "renameOutput": "Account Issue"
             }
-          ],
-          "fallbackOutput": "General Question"
+          ]
         },
-        "options": {}
+        "options": {
+          "fallbackOutput": "extra"
+        }
       },
       "id": "a1b2c3d4-0001-4000-8000-000000000004",
       "name": "Switch",
@@ -102,8 +138,7 @@
     },
     {
       "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ reply: $json.parsed.reply, category: 'booking_help' }) }}",
+        "respondWith": "firstIncomingItem",
         "options": {}
       },
       "id": "a1b2c3d4-0001-4000-8000-000000000005",
@@ -114,8 +149,7 @@
     },
     {
       "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ reply: $json.parsed.reply, category: 'account_issue' }) }}",
+        "respondWith": "firstIncomingItem",
         "options": {}
       },
       "id": "a1b2c3d4-0001-4000-8000-000000000006",
@@ -126,8 +160,7 @@
     },
     {
       "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ reply: $json.parsed.reply, category: 'general_question' }) }}",
+        "respondWith": "firstIncomingItem",
         "options": {}
       },
       "id": "a1b2c3d4-0001-4000-8000-000000000007",
