@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Option A: Storybook — ChildCompass Redesign</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,400&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FFF8F0;
+    --cream-dark: #F5EDE3;
+    --terracotta: #D4785C;
+    --terracotta-light: #E8A48E;
+    --terracotta-dark: #B85F45;
+    --sage: #7BA68A;
+    --sage-light: #A8CCAE;
+    --sage-dark: #5E8A6B;
+    --dusty-rose: #D4A0A0;
+    --dusty-rose-light: #F0D4D4;
+    --sand: #E8D5B7;
+    --sand-light: #F2E8D8;
+    --charcoal: #3D3530;
+    --warm-gray: #8A7E75;
+    --warm-gray-light: #C4B8AE;
+    --white: #FFFFFF;
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Nunito', sans-serif;
+    --radius: 24px;
+    --radius-sm: 16px;
+    --radius-pill: 100px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--cream);
+    color: var(--charcoal);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ===== HEADER / NAVBAR ===== */
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 48px;
+    background: rgba(255,248,240,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(212,120,92,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--terracotta);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-icon {
+    width: 38px;
+    height: 38px;
+    background: var(--terracotta);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+  }
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+  }
+  .nav-links a {
+    text-decoration: none;
+    color: var(--warm-gray);
+    font-weight: 600;
+    font-size: 15px;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--terracotta); }
+  .nav-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .btn-primary {
+    background: var(--terracotta);
+    color: white;
+    padding: 12px 28px;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 4px 16px rgba(212,120,92,0.25);
+  }
+  .btn-primary:hover {
+    background: var(--terracotta-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(212,120,92,0.35);
+  }
+  .btn-secondary {
+    background: var(--sage);
+    color: white;
+    padding: 12px 28px;
+    border-radius: var(--radius-pill);
+  }
+  .btn-secondary:hover {
+    background: var(--sage-dark);
+    transform: translateY(-1px);
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--terracotta);
+    padding: 10px 24px;
+    border-radius: var(--radius-pill);
+    border: 2px solid var(--terracotta-light);
+  }
+  .btn-outline:hover {
+    background: rgba(212,120,92,0.08);
+    border-color: var(--terracotta);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--warm-gray);
+    padding: 10px 20px;
+    border-radius: var(--radius-pill);
+  }
+  .btn-ghost:hover { color: var(--terracotta); background: rgba(212,120,92,0.06); }
+
+  /* ===== SECTION LABEL ===== */
+  .section-label {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: var(--warm-gray-light);
+    margin-bottom: 32px;
+    padding-top: 48px;
+    border-top: 1px dashed var(--warm-gray-light);
+  }
+
+  /* ===== HERO SECTION ===== */
+  .hero {
+    position: relative;
+    padding: 80px 48px 100px;
+    overflow: hidden;
+    text-align: center;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 600px 400px at 20% 30%, rgba(212,160,160,0.15), transparent),
+      radial-gradient(ellipse 500px 350px at 80% 60%, rgba(232,213,183,0.2), transparent),
+      radial-gradient(ellipse 400px 300px at 50% 80%, rgba(123,166,138,0.08), transparent);
+    z-index: 0;
+  }
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 780px;
+    margin: 0 auto;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--sand-light);
+    border: 1px solid var(--sand);
+    padding: 8px 20px;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--terracotta-dark);
+    margin-bottom: 28px;
+  }
+  .hero-badge .dot {
+    width: 8px;
+    height: 8px;
+    background: var(--sage);
+    border-radius: 50%;
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: 64px;
+    font-weight: 800;
+    line-height: 1.08;
+    color: var(--charcoal);
+    margin-bottom: 20px;
+    letter-spacing: -1px;
+  }
+  .hero h1 em {
+    color: var(--terracotta);
+    font-style: italic;
+  }
+  .hero p {
+    font-size: 19px;
+    color: var(--warm-gray);
+    line-height: 1.7;
+    margin-bottom: 36px;
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 48px;
+  }
+  .trust-badges {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .trust-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--warm-gray);
+  }
+  .trust-badge .icon {
+    width: 32px;
+    height: 32px;
+    background: var(--white);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  /* Floating illustrations */
+  .float-element {
+    position: absolute;
+    font-size: 42px;
+    opacity: 0.5;
+    z-index: 0;
+    animation: gentle-float 6s ease-in-out infinite;
+  }
+  .float-1 { top: 15%; left: 8%; animation-delay: 0s; }
+  .float-2 { top: 25%; right: 10%; animation-delay: 1.5s; }
+  .float-3 { bottom: 20%; left: 12%; animation-delay: 3s; }
+  .float-4 { bottom: 15%; right: 8%; animation-delay: 0.8s; }
+
+  @keyframes gentle-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-12px) rotate(3deg); }
+  }
+
+  /* ===== CATEGORY CARDS ===== */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 48px; }
+
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .category-card {
+    background: var(--white);
+    border: 2px solid transparent;
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .category-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 0 0 var(--radius) var(--radius);
+    transition: height 0.3s;
+  }
+  .category-card:nth-child(1)::after { background: var(--terracotta); }
+  .category-card:nth-child(2)::after { background: var(--sage); }
+  .category-card:nth-child(3)::after { background: var(--dusty-rose); }
+  .category-card:nth-child(4)::after { background: var(--sand); }
+  .category-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(61,53,48,0.08);
+  }
+  .category-card:hover::after { height: 5px; }
+  .category-card .emoji {
+    font-size: 36px;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .category-card h3 {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .category-card p {
+    font-size: 13px;
+    color: var(--warm-gray);
+    font-weight: 500;
+  }
+
+  /* ===== ACTIVITY CARDS (Listing Preview) ===== */
+  .listings-section {
+    padding: 48px 0;
+  }
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .section-header h2 {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 700;
+  }
+
+  .listings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  .listing-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 2px solid rgba(196,184,174,0.3);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .listing-card:hover {
+    border-color: var(--terracotta-light);
+    box-shadow: 0 16px 48px rgba(61,53,48,0.1);
+    transform: translateY(-3px);
+  }
+  .listing-card-image {
+    height: 180px;
+    position: relative;
+    overflow: hidden;
+  }
+  .listing-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .listing-card-image .placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+  }
+  .listing-card-image .placeholder:nth-child(1) { background: linear-gradient(135deg, #F0D4D4, #E8A48E); }
+  .listing-cat-badge {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    background: rgba(61,53,48,0.8);
+    backdrop-filter: blur(8px);
+    color: white;
+    padding: 5px 14px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .listing-card-body {
+    padding: 20px;
+  }
+  .listing-card-body h3 {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .listing-provider {
+    font-size: 13px;
+    color: var(--warm-gray);
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .listing-provider .verified {
+    color: var(--sage);
+    font-size: 14px;
+  }
+  .listing-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .meta-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--cream);
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--charcoal);
+  }
+  .meta-tag.price {
+    background: var(--sand-light);
+    color: var(--terracotta-dark);
+    font-weight: 800;
+  }
+
+  /* ===== FILTER PILLS ===== */
+  .filters-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+    padding: 16px 20px;
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid rgba(196,184,174,0.25);
+  }
+  .filter-pill {
+    padding: 8px 18px;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    font-weight: 700;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--font-body);
+    background: var(--cream);
+    color: var(--warm-gray);
+  }
+  .filter-pill:hover {
+    background: var(--cream-dark);
+    color: var(--charcoal);
+  }
+  .filter-pill.active {
+    background: var(--terracotta);
+    color: white;
+    border-color: var(--terracotta);
+  }
+  .filter-pill.active-sage {
+    background: var(--sage);
+    color: white;
+    border-color: var(--sage);
+  }
+  .filter-pill.active-sand {
+    background: var(--sand);
+    color: var(--charcoal);
+    border-color: var(--sand);
+  }
+
+  /* ===== HOW IT WORKS ===== */
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 20px;
+  }
+  .step-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 32px 24px;
+    text-align: center;
+    border: 1px solid rgba(196,184,174,0.2);
+    transition: all 0.3s;
+  }
+  .step-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(61,53,48,0.07);
+  }
+  .step-number {
+    width: 44px;
+    height: 44px;
+    background: var(--cream-dark);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--terracotta);
+    margin: 0 auto 16px;
+  }
+  .step-card h3 {
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .step-card p {
+    font-size: 14px;
+    color: var(--warm-gray);
+    line-height: 1.6;
+  }
+
+  /* ===== FORM ELEMENTS ===== */
+  .form-section {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 48px 0;
+  }
+  .form-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 40px 36px;
+    border: 1px solid rgba(196,184,174,0.25);
+    box-shadow: 0 8px 32px rgba(61,53,48,0.06);
+  }
+  .form-card h2 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .form-card .subtitle {
+    text-align: center;
+    color: var(--warm-gray);
+    font-size: 14px;
+    margin-bottom: 28px;
+  }
+  .form-group {
+    margin-bottom: 18px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--charcoal);
+    margin-bottom: 6px;
+  }
+  .form-input {
+    width: 100%;
+    padding: 13px 16px;
+    border: 2px solid rgba(196,184,174,0.4);
+    border-radius: 14px;
+    font-size: 15px;
+    font-family: var(--font-body);
+    color: var(--charcoal);
+    background: var(--cream);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .form-input::placeholder { color: var(--warm-gray-light); }
+  .form-input:focus {
+    border-color: var(--terracotta);
+    box-shadow: 0 0 0 3px rgba(212,120,92,0.12);
+    background: var(--white);
+  }
+  .form-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0;
+    color: var(--warm-gray-light);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .form-divider::before, .form-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(196,184,174,0.3);
+  }
+  .btn-google {
+    width: 100%;
+    padding: 13px;
+    border-radius: 14px;
+    border: 2px solid rgba(196,184,174,0.4);
+    background: var(--white);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--charcoal);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--font-body);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn-google:hover {
+    background: var(--cream);
+    border-color: var(--warm-gray-light);
+  }
+
+  /* ===== BOOKING STATUS BADGES ===== */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 14px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .badge-pending {
+    background: #FFF3E0;
+    color: #E65100;
+    border: 1px solid #FFE0B2;
+  }
+  .badge-confirmed {
+    background: #E8F5E9;
+    color: #2E7D32;
+    border: 1px solid #C8E6C9;
+  }
+  .badge-declined {
+    background: var(--dusty-rose-light);
+    color: #C62828;
+    border: 1px solid var(--dusty-rose);
+  }
+
+  /* ===== DASHBOARD CARD ===== */
+  .dash-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px;
+    border: 1px solid rgba(196,184,174,0.25);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .dash-card:hover {
+    border-color: var(--terracotta-light);
+    box-shadow: 0 4px 16px rgba(61,53,48,0.06);
+  }
+  .dash-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 800;
+    color: white;
+  }
+  .dash-card-content h4 {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+  .dash-card-content p {
+    font-size: 13px;
+    color: var(--warm-gray);
+  }
+
+  /* ===== STAT CARDS ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--white);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    text-align: center;
+    border: 1px solid rgba(196,184,174,0.2);
+  }
+  .stat-card .number {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--terracotta);
+    margin-bottom: 4px;
+  }
+  .stat-card .label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--warm-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== CTA SECTION ===== */
+  .cta-section {
+    background: var(--terracotta);
+    border-radius: var(--radius);
+    padding: 60px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin: 48px 0;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle 200px at 10% 20%, rgba(255,255,255,0.08), transparent),
+      radial-gradient(circle 300px at 90% 80%, rgba(0,0,0,0.06), transparent);
+  }
+  .cta-section h2 {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .cta-section p {
+    color: rgba(255,255,255,0.8);
+    font-size: 16px;
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .btn-cta-white {
+    background: white;
+    color: var(--terracotta);
+    padding: 14px 36px;
+    border-radius: var(--radius-pill);
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.25s;
+    font-family: var(--font-body);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  .btn-cta-white:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    background: var(--charcoal);
+    padding: 48px;
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    margin-top: 48px;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 32px;
+  }
+  .footer-brand {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 12px;
+  }
+  .footer h4 {
+    color: white;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+  }
+  .footer a {
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 10px;
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+  .footer a:hover { color: var(--terracotta-light); }
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 24px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* ===== PAGE TITLE ===== */
+  .page-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--charcoal);
+    margin-bottom: 4px;
+  }
+  .page-subtitle {
+    font-size: 13px;
+    color: var(--warm-gray);
+  }
+
+  /* Grain texture overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    z-index: 9999;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar">
+  <div class="logo">
+    <div class="logo-icon">🧭</div>
+    ChildCompass
+  </div>
+  <div class="nav-links">
+    <a href="#">Entdecken</a>
+    <a href="#">Für Anbieter</a>
+    <a href="#">Über uns</a>
+  </div>
+  <div class="nav-actions">
+    <button class="btn btn-ghost">Anmelden</button>
+    <button class="btn btn-primary">Los geht's</button>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="float-element float-1">🎨</div>
+  <div class="float-element float-2">🎵</div>
+  <div class="float-element float-3">🌿</div>
+  <div class="float-element float-4">⚽</div>
+  <div class="hero-content">
+    <div class="hero-badge"><span class="dot"></span> Erfurts Kinderaktivitäten-Plattform</div>
+    <h1>Das Beste für<br><em>kleine Entdecker</em></h1>
+    <p>Finde liebevolle Betreuung und spannende Aktivitäten für dein Kind — von Kitas über Schwimmkurse bis hin zu Kreativwerkstätten.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" style="padding: 16px 36px; font-size: 17px;">Aktivitäten entdecken →</button>
+      <button class="btn btn-outline" style="padding: 14px 30px;">Für Anbieter</button>
+    </div>
+    <div class="trust-badges">
+      <div class="trust-badge"><div class="icon">🏠</div> 17+ Anbieter</div>
+      <div class="trust-badge"><div class="icon">📋</div> 32+ Aktivitäten</div>
+      <div class="trust-badge"><div class="icon">👶</div> 0–6 Jahre</div>
+      <div class="trust-badge"><div class="icon">📍</div> Erfurt</div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <!-- ===== CATEGORIES ===== -->
+  <div class="section-label">Option A: "Storybook" — Soft, Illustrated, Whimsical</div>
+
+  <div class="section-header">
+    <h2>Nach Alter entdecken</h2>
+  </div>
+  <div class="categories-grid">
+    <div class="category-card">
+      <span class="emoji">👶</span>
+      <h3>Babys</h3>
+      <p>0 – 12 Monate</p>
+    </div>
+    <div class="category-card">
+      <span class="emoji">🧒</span>
+      <h3>Kleinkinder</h3>
+      <p>1 – 2 Jahre</p>
+    </div>
+    <div class="category-card">
+      <span class="emoji">🎨</span>
+      <h3>Kindergarten</h3>
+      <p>3 – 4 Jahre</p>
+    </div>
+    <div class="category-card">
+      <span class="emoji">🎒</span>
+      <h3>Vorschule</h3>
+      <p>5 – 6 Jahre</p>
+    </div>
+  </div>
+
+  <!-- ===== FILTER BAR ===== -->
+  <div class="section-header" style="margin-top: 48px">
+    <h2>Aktivitäten</h2>
+    <button class="btn btn-ghost" style="font-size: 14px;">Alle anzeigen →</button>
+  </div>
+
+  <div class="filters-bar">
+    <button class="filter-pill active">Alle</button>
+    <button class="filter-pill">🏠 Kita</button>
+    <button class="filter-pill active-sage">⚽ Sport</button>
+    <button class="filter-pill">🎨 Kreativ</button>
+    <button class="filter-pill">🎵 Musik</button>
+    <button class="filter-pill">🏊 Schwimmen</button>
+    <button class="filter-pill">🌿 Natur</button>
+    <button class="filter-pill active-sand">0–1 J.</button>
+    <button class="filter-pill">1–2 J.</button>
+    <button class="filter-pill">< €50</button>
+  </div>
+
+  <!-- ===== LISTING CARDS ===== -->
+  <div class="listings-grid">
+    <div class="listing-card">
+      <div class="listing-card-image">
+        <div class="placeholder" style="background: linear-gradient(135deg, #F0D4D4, #E8A48E);">🎨</div>
+        <span class="listing-cat-badge">Kreativwerkstatt</span>
+      </div>
+      <div class="listing-card-body">
+        <h3>Kleine Künstler — Malen & Basteln</h3>
+        <div class="listing-provider">Kreativhaus Erfurt <span class="verified">✓</span></div>
+        <div class="listing-meta">
+          <span class="meta-tag price">€45 / Monat</span>
+          <span class="meta-tag">👶 2–5 Jahre</span>
+          <span class="meta-tag">📍 0.8 km</span>
+        </div>
+      </div>
+    </div>
+    <div class="listing-card">
+      <div class="listing-card-image">
+        <div class="placeholder" style="background: linear-gradient(135deg, #A8CCAE, #7BA68A);">🏊</div>
+        <span class="listing-cat-badge">Schwimmen</span>
+      </div>
+      <div class="listing-card-body">
+        <h3>Wasserflöhe — Babyschwimmen</h3>
+        <div class="listing-provider">Schwimmschule Delphin</div>
+        <div class="listing-meta">
+          <span class="meta-tag price">€12 / Einheit</span>
+          <span class="meta-tag">👶 6–18 Mon.</span>
+          <span class="meta-tag">📍 2.1 km</span>
+        </div>
+      </div>
+    </div>
+    <div class="listing-card">
+      <div class="listing-card-image">
+        <div class="placeholder" style="background: linear-gradient(135deg, #E8D5B7, #D4A843);">🎵</div>
+        <span class="listing-cat-badge">Musikalische Früherziehung</span>
+      </div>
+      <div class="listing-card-body">
+        <h3>Klangwelt — Musik für die Kleinsten</h3>
+        <div class="listing-provider">Musikschule Erfurt <span class="verified">✓</span></div>
+        <div class="listing-meta">
+          <span class="meta-tag price">€35 / Monat</span>
+          <span class="meta-tag">👶 1–4 Jahre</span>
+          <span class="meta-tag">📍 1.3 km</span>
+        </div>
+      </div>
+    </div>
+    <div class="listing-card">
+      <div class="listing-card-image">
+        <div class="placeholder" style="background: linear-gradient(135deg, #C8D8E8, #8AAEC8);">⚽</div>
+        <span class="listing-cat-badge">Kindersport</span>
+      </div>
+      <div class="listing-card-body">
+        <h3>Mini-Kicker — Fußball ab 3</h3>
+        <div class="listing-provider">SV Erfurt-Nord</div>
+        <div class="listing-meta">
+          <span class="meta-tag price">€8 / Einheit</span>
+          <span class="meta-tag">👶 3–6 Jahre</span>
+          <span class="meta-tag">📍 3.5 km</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HOW IT WORKS ===== -->
+  <div class="section-header" style="margin-top: 56px">
+    <h2>So funktioniert's</h2>
+  </div>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-number">1</div>
+      <h3>Entdecken</h3>
+      <p>Durchstöbere Aktivitäten nach Alter, Kategorie und Standort</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">2</div>
+      <h3>Anfragen</h3>
+      <p>Sende eine unverbindliche Buchungsanfrage direkt an den Anbieter</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">3</div>
+      <h3>Loslegen</h3>
+      <p>Nach Bestätigung kann dein Kind an der Aktivität teilnehmen</p>
+    </div>
+  </div>
+
+  <!-- ===== DASHBOARD PREVIEW (Stats + Bookings) ===== -->
+  <div class="section-label">Dashboard Preview</div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="number">12</div>
+      <div class="label">Angebote</div>
+    </div>
+    <div class="stat-card">
+      <div class="number" style="color: var(--sage);">8</div>
+      <div class="label">Veröffentlicht</div>
+    </div>
+    <div class="stat-card">
+      <div class="number" style="color: #E65100;">3</div>
+      <div class="label">Ausstehend</div>
+    </div>
+    <div class="stat-card">
+      <div class="number" style="color: #2E7D32;">24</div>
+      <div class="label">Bestätigt</div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+      <div class="dash-avatar" style="background: linear-gradient(135deg, var(--terracotta), var(--terracotta-dark));">L</div>
+      <div class="dash-card-content" style="flex: 1;">
+        <h4>Lena Müller · <span class="badge badge-pending">⏳ Ausstehend</span></h4>
+        <p>Kleine Künstler — Malen & Basteln · Emma (3 J.) · vor 2 Std.</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-secondary" style="padding: 8px 18px; font-size: 13px;">✓ Annehmen</button>
+        <button class="btn btn-outline" style="padding: 8px 18px; font-size: 13px; color: var(--warm-gray); border-color: var(--warm-gray-light);">✕ Ablehnen</button>
+      </div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-avatar" style="background: linear-gradient(135deg, var(--sage), var(--sage-dark));">T</div>
+      <div class="dash-card-content" style="flex: 1;">
+        <h4>Thomas Weber · <span class="badge badge-confirmed">✓ Bestätigt</span></h4>
+        <p>Wasserflöhe — Babyschwimmen · Max (1 J.) · vor 1 Tag</p>
+      </div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-avatar" style="background: linear-gradient(135deg, var(--dusty-rose), #B07070);">S</div>
+      <div class="dash-card-content" style="flex: 1;">
+        <h4>Sarah Klein · <span class="badge badge-declined">✕ Abgelehnt</span></h4>
+        <p>Mini-Kicker — Fußball ab 3 · Ben (4 J.) · vor 3 Tagen</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LOGIN FORM ===== -->
+  <div class="section-label">Auth Form Preview</div>
+
+  <div class="form-section">
+    <div class="form-card">
+      <h2>Willkommen zurück</h2>
+      <p class="subtitle">Melde dich an, um fortzufahren</p>
+      <div class="form-group">
+        <label>E-Mail-Adresse</label>
+        <input type="email" class="form-input" placeholder="name@beispiel.de">
+      </div>
+      <div class="form-group">
+        <label>Passwort</label>
+        <input type="password" class="form-input" placeholder="••••••••">
+      </div>
+      <div style="text-align: right; margin-bottom: 20px;">
+        <a href="#" style="color: var(--terracotta); text-decoration: none; font-size: 13px; font-weight: 600;">Passwort vergessen?</a>
+      </div>
+      <button class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 16px; border-radius: 14px;">Anmelden</button>
+      <div class="form-divider">oder</div>
+      <button class="btn-google">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Mit Google anmelden
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== CTA SECTION ===== -->
+  <div class="cta-section">
+    <h2>Bereit loszulegen?</h2>
+    <p>Entdecke die besten Kinderaktivitäten in Erfurt — kostenlos für Eltern.</p>
+    <button class="btn-cta-white">Jetzt kostenlos registrieren</button>
+  </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">🧭 ChildCompass</div>
+      <p style="margin-bottom: 16px; line-height: 1.6;">Erfurts Plattform für Kinderaktivitäten. Finde die perfekte Betreuung für dein Kind.</p>
+    </div>
+    <div>
+      <h4>Entdecken</h4>
+      <a href="#">Alle Aktivitäten</a>
+      <a href="#">Kitas</a>
+      <a href="#">Sportkurse</a>
+      <a href="#">Schwimmkurse</a>
+    </div>
+    <div>
+      <h4>Für Anbieter</h4>
+      <a href="#">Anbieter werden</a>
+      <a href="#">Dashboard</a>
+      <a href="#">Hilfe</a>
+    </div>
+    <div>
+      <h4>Rechtliches</h4>
+      <a href="#">Datenschutz</a>
+      <a href="#">Impressum</a>
+      <a href="#">AGB</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 ChildCompass. Alle Rechte vorbehalten.</span>
+    <span>Mit ❤️ in Erfurt gemacht</span>
+  </div>
+</footer>
+
+</body>
+</html>

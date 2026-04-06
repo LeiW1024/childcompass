@@ -2,7 +2,6 @@
   "permissions": {
     "allow": [
       "WebSearch",
-      "mcp__Claude_Preview__preview_start",
       "WebFetch(domain:www.latlong.net)",
       "WebFetch(domain:nominatim.openstreetmap.org)",
       "WebFetch(domain:geocode.maps.co)",
@@ -10,7 +9,9 @@
       "Bash(npm install:*)",
       "Bash(npx jest:*)",
       "Bash(npx ts-jest:*)",
-      "Bash(npm -v)"
+      "Bash(npm -v)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(cat:*)"
     ]
   }
 }

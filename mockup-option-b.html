@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Option B: Nordic Nest — ChildCompass Redesign</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FAF6F1;
+    --cream-warm: #F3EDE5;
+    --forest: #2D5A3D;
+    --forest-light: #3D7A53;
+    --forest-pale: #E8F0EB;
+    --amber: #D4A843;
+    --amber-light: #F0DDB0;
+    --amber-pale: #FBF5E8;
+    --blush: #E8C4B8;
+    --blush-light: #F5E0D8;
+    --charcoal: #2C2C2C;
+    --text: #3A3A3A;
+    --text-muted: #7A7A7A;
+    --border: #E0D8CE;
+    --border-light: #EDE7DF;
+    --white: #FFFFFF;
+    --font-display: 'DM Serif Display', serif;
+    --font-body: 'DM Sans', sans-serif;
+    --radius: 16px;
+    --radius-sm: 12px;
+    --radius-xs: 8px;
+    --radius-pill: 100px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--cream);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ===== NAVBAR ===== */
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 48px;
+    background: var(--white);
+    border-bottom: 1px solid var(--border-light);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--forest);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+    background: var(--forest);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+  }
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    align-items: center;
+  }
+  .nav-links a {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 15px;
+    transition: color 0.2s;
+    letter-spacing: -0.01em;
+  }
+  .nav-links a:hover { color: var(--forest); }
+  .nav-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: -0.01em;
+  }
+  .btn-primary {
+    background: var(--forest);
+    color: white;
+    padding: 11px 24px;
+    border-radius: var(--radius-sm);
+  }
+  .btn-primary:hover {
+    background: var(--forest-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(45,90,61,0.2);
+  }
+  .btn-amber {
+    background: var(--amber);
+    color: var(--charcoal);
+    padding: 11px 24px;
+    border-radius: var(--radius-sm);
+  }
+  .btn-amber:hover {
+    background: #C49A38;
+    transform: translateY(-1px);
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--forest);
+    padding: 10px 22px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+  }
+  .btn-outline:hover {
+    border-color: var(--forest);
+    background: var(--forest-pale);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-muted);
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+  }
+  .btn-ghost:hover {
+    color: var(--forest);
+    background: var(--forest-pale);
+  }
+
+  /* ===== SECTION LABEL ===== */
+  .section-label {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: var(--border);
+    margin-bottom: 32px;
+    padding-top: 48px;
+    border-top: 1px solid var(--border-light);
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    position: relative;
+    padding: 80px 48px 96px;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 700px 400px at 70% 20%, rgba(212,168,67,0.06), transparent),
+      radial-gradient(ellipse 500px 400px at 20% 70%, rgba(45,90,61,0.04), transparent);
+  }
+  .hero-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 64px;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--forest-pale);
+    border: 1px solid rgba(45,90,61,0.12);
+    padding: 7px 16px;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--forest);
+    margin-bottom: 24px;
+  }
+  .hero-tag .dot {
+    width: 7px;
+    height: 7px;
+    background: var(--forest);
+    border-radius: 50%;
+    animation: pulse-dot 2s infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: 56px;
+    line-height: 1.1;
+    color: var(--charcoal);
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
+  }
+  .hero h1 em {
+    color: var(--forest);
+    font-style: italic;
+  }
+  .hero-text {
+    font-size: 18px;
+    color: var(--text-muted);
+    line-height: 1.65;
+    margin-bottom: 32px;
+    max-width: 480px;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .trust-row {
+    display: flex;
+    gap: 28px;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+  .trust-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  /* Hero right side — preview cards */
+  .hero-visual {
+    position: relative;
+  }
+  .preview-card {
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+    margin-bottom: 14px;
+  }
+  .preview-card:nth-child(2) {
+    margin-left: 32px;
+  }
+  .preview-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .preview-emoji {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  .preview-card h4 {
+    font-family: var(--font-display);
+    font-size: 15px;
+    margin-bottom: 2px;
+  }
+  .preview-card .sub {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .preview-tags {
+    display: flex;
+    gap: 6px;
+  }
+  .preview-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--cream);
+    color: var(--text-muted);
+  }
+  .preview-tag.price {
+    background: var(--amber-pale);
+    color: #8B6914;
+    font-weight: 700;
+  }
+
+  /* ===== CONTENT ===== */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 48px;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 24px;
+  }
+  .section-header h2 {
+    font-family: var(--font-display);
+    font-size: 30px;
+    color: var(--charcoal);
+  }
+
+  /* ===== CATEGORIES ===== */
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .category-card {
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 24px 18px;
+    text-align: center;
+    transition: all 0.25s;
+    cursor: pointer;
+  }
+  .category-card:hover {
+    border-color: var(--forest);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(45,90,61,0.08);
+  }
+  .category-card .emoji {
+    font-size: 32px;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .category-card h3 {
+    font-family: var(--font-display);
+    font-size: 16px;
+    margin-bottom: 4px;
+    color: var(--charcoal);
+  }
+  .category-card p {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* ===== FILTER BAR ===== */
+  .filters-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    padding: 12px 16px;
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-light);
+  }
+  .filter-pill {
+    padding: 7px 16px;
+    border-radius: var(--radius-xs);
+    font-size: 13px;
+    font-weight: 600;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font-body);
+    background: var(--cream);
+    color: var(--text-muted);
+  }
+  .filter-pill:hover {
+    background: var(--cream-warm);
+    color: var(--text);
+  }
+  .filter-pill.active {
+    background: var(--forest);
+    color: white;
+  }
+  .filter-pill.active-amber {
+    background: var(--amber);
+    color: var(--charcoal);
+  }
+  .filter-pill.active-blush {
+    background: var(--blush);
+    color: var(--charcoal);
+  }
+
+  /* ===== LISTING CARDS ===== */
+  .listings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+  .listing-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    transition: all 0.25s;
+    cursor: pointer;
+    display: flex;
+  }
+  .listing-card:hover {
+    border-color: var(--forest);
+    box-shadow: 0 8px 32px rgba(45,90,61,0.08);
+    transform: translateY(-2px);
+  }
+  .listing-card-left {
+    width: 140px;
+    min-height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .listing-card-left .cat-label {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    color: white;
+    padding: 4px 10px;
+    border-radius: var(--radius-xs);
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .listing-card-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+  }
+  .listing-card-body h3 {
+    font-family: var(--font-display);
+    font-size: 17px;
+    margin-bottom: 4px;
+    color: var(--charcoal);
+    line-height: 1.3;
+  }
+  .listing-provider {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--forest);
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .listing-meta {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: var(--radius-xs);
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--cream);
+    color: var(--text-muted);
+  }
+  .meta-chip.price {
+    background: var(--amber-pale);
+    color: #8B6914;
+    font-weight: 700;
+  }
+  .meta-chip.age {
+    background: var(--forest-pale);
+    color: var(--forest);
+  }
+
+  /* ===== STEPS ===== */
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 20px;
+  }
+  .step-card {
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 28px 22px;
+    transition: all 0.25s;
+  }
+  .step-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+  }
+  .step-num {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--amber);
+    margin-bottom: 14px;
+    display: block;
+  }
+  .step-card h3 {
+    font-family: var(--font-display);
+    font-size: 20px;
+    margin-bottom: 8px;
+    color: var(--charcoal);
+  }
+  .step-card p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ===== STATS ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 22px 18px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 34px;
+    color: var(--forest);
+    margin-bottom: 4px;
+    display: block;
+  }
+  .stat-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== DASHBOARD CARDS ===== */
+  .dash-card {
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: all 0.2s;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+  .dash-card:hover {
+    border-color: var(--forest);
+    box-shadow: 0 2px 12px rgba(45,90,61,0.06);
+  }
+  .dash-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+  }
+  .dash-content { flex: 1; }
+  .dash-content h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    color: var(--charcoal);
+  }
+  .dash-content p {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Badges */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: var(--radius-xs);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .badge-pending {
+    background: var(--amber-pale);
+    color: #8B6914;
+  }
+  .badge-confirmed {
+    background: var(--forest-pale);
+    color: var(--forest);
+  }
+  .badge-declined {
+    background: var(--blush-light);
+    color: #8B3A2A;
+  }
+
+  /* ===== FORM ===== */
+  .form-section {
+    max-width: 440px;
+    margin: 0 auto;
+    padding: 48px 0;
+  }
+  .form-card {
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 36px 32px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  }
+  .form-card h2 {
+    font-family: var(--font-display);
+    font-size: 26px;
+    margin-bottom: 4px;
+    text-align: center;
+    color: var(--charcoal);
+  }
+  .form-subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 28px;
+  }
+  .form-group {
+    margin-bottom: 16px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .form-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-family: var(--font-body);
+    color: var(--text);
+    background: var(--cream);
+    transition: all 0.2s;
+    outline: none;
+  }
+  .form-input::placeholder { color: #B0A89E; }
+  .form-input:focus {
+    border-color: var(--forest);
+    box-shadow: 0 0 0 3px rgba(45,90,61,0.08);
+    background: var(--white);
+  }
+  .form-link {
+    color: var(--forest);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .form-link:hover { text-decoration: underline; }
+  .form-divider {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 22px 0;
+    color: var(--border);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .form-divider::before, .form-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-light);
+  }
+  .btn-google {
+    width: 100%;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font-body);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn-google:hover {
+    background: var(--cream);
+    border-color: var(--text-muted);
+  }
+
+  /* ===== CTA ===== */
+  .cta-section {
+    background: var(--forest);
+    border-radius: var(--radius);
+    padding: 56px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin: 48px 0;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle 250px at 15% 30%, rgba(255,255,255,0.04), transparent),
+      radial-gradient(circle 200px at 85% 70%, rgba(212,168,67,0.08), transparent);
+  }
+  .cta-section h2 {
+    font-family: var(--font-display);
+    font-size: 34px;
+    color: white;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .cta-section p {
+    color: rgba(255,255,255,0.75);
+    font-size: 16px;
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .btn-cta {
+    background: var(--amber);
+    color: var(--charcoal);
+    padding: 14px 32px;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    font-family: var(--font-body);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+  .btn-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.2);
+    background: #C49A38;
+  }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    background: var(--charcoal);
+    padding: 48px;
+    color: rgba(255,255,255,0.6);
+    font-size: 14px;
+    margin-top: 48px;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 32px;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .footer-brand {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: white;
+    margin-bottom: 12px;
+  }
+  .footer h4 {
+    color: rgba(255,255,255,0.9);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+  .footer a {
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 10px;
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+  .footer a:hover { color: var(--amber); }
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar">
+  <div class="logo">
+    <div class="logo-mark">🧭</div>
+    ChildCompass
+  </div>
+  <div class="nav-links">
+    <a href="#">Entdecken</a>
+    <a href="#">Für Anbieter</a>
+    <a href="#">Über uns</a>
+  </div>
+  <div class="nav-actions">
+    <button class="btn btn-ghost">Anmelden</button>
+    <button class="btn btn-primary">Los geht's</button>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-tag"><span class="dot"></span> Kinderaktivitäten in Erfurt</div>
+      <h1>Das Beste für<br><em>kleine Entdecker</em></h1>
+      <p class="hero-text">Finde liebevolle Betreuung und spannende Aktivitäten für dein Kind — von Kitas über Schwimmkurse bis hin zu Kreativwerkstätten.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" style="padding: 14px 30px; font-size: 15px;">Aktivitäten entdecken →</button>
+        <button class="btn btn-outline" style="padding: 12px 26px;">Für Anbieter</button>
+      </div>
+      <div class="trust-row">
+        <div class="trust-item"><div class="trust-icon">🏠</div> 17+ Anbieter</div>
+        <div class="trust-item"><div class="trust-icon">📋</div> 32+ Aktivitäten</div>
+        <div class="trust-item"><div class="trust-icon">👶</div> 0–6 Jahre</div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="preview-card">
+        <div class="preview-card-header">
+          <div class="preview-emoji" style="background: linear-gradient(135deg, #E8F0EB, #C8DEC8);">🎨</div>
+          <div>
+            <h4>Kleine Künstler</h4>
+            <div class="sub">Kreativhaus Erfurt · <span class="verified-badge">✓ Verifiziert</span></div>
+          </div>
+        </div>
+        <div class="preview-tags">
+          <span class="preview-tag price">€45/Mo.</span>
+          <span class="preview-tag">👶 2–5 J.</span>
+          <span class="preview-tag">📍 0.8 km</span>
+        </div>
+      </div>
+      <div class="preview-card">
+        <div class="preview-card-header">
+          <div class="preview-emoji" style="background: linear-gradient(135deg, #FBF5E8, #F0DDB0);">🏊</div>
+          <div>
+            <h4>Wasserflöhe</h4>
+            <div class="sub">Schwimmschule Delphin</div>
+          </div>
+        </div>
+        <div class="preview-tags">
+          <span class="preview-tag price">€12/Einheit</span>
+          <span class="preview-tag">👶 6–18 Mon.</span>
+          <span class="preview-tag">📍 2.1 km</span>
+        </div>
+      </div>
+      <div class="preview-card">
+        <div class="preview-card-header">
+          <div class="preview-emoji" style="background: linear-gradient(135deg, #F5E0D8, #E8C4B8);">🎵</div>
+          <div>
+            <h4>Klangwelt Erfurt</h4>
+            <div class="sub">Musikschule Erfurt · <span class="verified-badge">✓ Verifiziert</span></div>
+          </div>
+        </div>
+        <div class="preview-tags">
+          <span class="preview-tag price">€35/Mo.</span>
+          <span class="preview-tag">👶 1–4 J.</span>
+          <span class="preview-tag">📍 1.3 km</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <!-- ===== CATEGORIES ===== -->
+  <div class="section-label">Option B: "Nordic Nest" — Scandinavian Warmth, Clean & Cozy</div>
+
+  <div class="section-header">
+    <h2>Nach Alter entdecken</h2>
+  </div>
+  <div class="categories-grid">
+    <div class="category-card">
+      <span class="emoji">👶</span>
+      <h3>Babys</h3>
+      <p>0 – 12 Monate</p>
+    </div>
+    <div class="category-card">
+      <span class="emoji">🧒</span>
+      <h3>Kleinkinder</h3>
+      <p>1 – 2 Jahre</p>
+    </div>
+    <div class="category-card">
+      <span class="emoji">🎨</span>
+      <h3>Kindergarten</h3>
+      <p>3 – 4 Jahre</p>
+    </div>
+    <div class="category-card">
+      <span class="emoji">🎒</span>
+      <h3>Vorschule</h3>
+      <p>5 – 6 Jahre</p>
+    </div>
+  </div>
+
+  <!-- ===== FILTERS + LISTINGS ===== -->
+  <div class="section-header" style="margin-top: 48px">
+    <h2>Aktivitäten</h2>
+    <button class="btn btn-ghost" style="font-size: 14px;">Alle anzeigen →</button>
+  </div>
+
+  <div class="filters-bar">
+    <button class="filter-pill active">Alle</button>
+    <button class="filter-pill">🏠 Kita</button>
+    <button class="filter-pill active-amber">⚽ Sport</button>
+    <button class="filter-pill">🎨 Kreativ</button>
+    <button class="filter-pill">🎵 Musik</button>
+    <button class="filter-pill">🏊 Schwimmen</button>
+    <button class="filter-pill">🌿 Natur</button>
+    <button class="filter-pill active-blush">0–1 J.</button>
+    <button class="filter-pill">1–2 J.</button>
+    <button class="filter-pill">< €50</button>
+  </div>
+
+  <div class="listings-grid">
+    <div class="listing-card">
+      <div class="listing-card-left" style="background: linear-gradient(135deg, #E8F0EB, #C8DEC8);">
+        🎨
+        <span class="cat-label">Kreativwerkstatt</span>
+      </div>
+      <div class="listing-card-body">
+        <h3>Kleine Künstler — Malen & Basteln</h3>
+        <div class="listing-provider">Kreativhaus Erfurt <span class="verified-badge">✓</span></div>
+        <div class="listing-meta">
+          <span class="meta-chip price">€45/Mo.</span>
+          <span class="meta-chip age">👶 2–5 J.</span>
+          <span class="meta-chip">📍 0.8 km</span>
+        </div>
+      </div>
+    </div>
+    <div class="listing-card">
+      <div class="listing-card-left" style="background: linear-gradient(135deg, #E0F0F8, #A8D8E8);">
+        🏊
+        <span class="cat-label">Schwimmen</span>
+      </div>
+      <div class="listing-card-body">
+        <h3>Wasserflöhe — Babyschwimmen</h3>
+        <div class="listing-provider">Schwimmschule Delphin</div>
+        <div class="listing-meta">
+          <span class="meta-chip price">€12/Einheit</span>
+          <span class="meta-chip age">👶 6–18 Mon.</span>
+          <span class="meta-chip">📍 2.1 km</span>
+        </div>
+      </div>
+    </div>
+    <div class="listing-card">
+      <div class="listing-card-left" style="background: linear-gradient(135deg, #FBF5E8, #F0DDB0);">
+        🎵
+        <span class="cat-label">Musik</span>
+      </div>
+      <div class="listing-card-body">
+        <h3>Klangwelt — Musik für die Kleinsten</h3>
+        <div class="listing-provider">Musikschule Erfurt <span class="verified-badge">✓</span></div>
+        <div class="listing-meta">
+          <span class="meta-chip price">€35/Mo.</span>
+          <span class="meta-chip age">👶 1–4 J.</span>
+          <span class="meta-chip">📍 1.3 km</span>
+        </div>
+      </div>
+    </div>
+    <div class="listing-card">
+      <div class="listing-card-left" style="background: linear-gradient(135deg, #F5E0D8, #E8C4B8);">
+        ⚽
+        <span class="cat-label">Kindersport</span>
+      </div>
+      <div class="listing-card-body">
+        <h3>Mini-Kicker — Fußball ab 3</h3>
+        <div class="listing-provider">SV Erfurt-Nord</div>
+        <div class="listing-meta">
+          <span class="meta-chip price">€8/Einheit</span>
+          <span class="meta-chip age">👶 3–6 J.</span>
+          <span class="meta-chip">📍 3.5 km</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HOW IT WORKS ===== -->
+  <div class="section-header" style="margin-top: 56px">
+    <h2>So funktioniert's</h2>
+  </div>
+  <div class="steps-grid">
+    <div class="step-card">
+      <span class="step-num">01</span>
+      <h3>Entdecken</h3>
+      <p>Durchstöbere Aktivitäten nach Alter, Kategorie und Standort</p>
+    </div>
+    <div class="step-card">
+      <span class="step-num">02</span>
+      <h3>Anfragen</h3>
+      <p>Sende eine unverbindliche Buchungsanfrage direkt an den Anbieter</p>
+    </div>
+    <div class="step-card">
+      <span class="step-num">03</span>
+      <h3>Loslegen</h3>
+      <p>Nach Bestätigung kann dein Kind an der Aktivität teilnehmen</p>
+    </div>
+  </div>
+
+  <!-- ===== DASHBOARD PREVIEW ===== -->
+  <div class="section-label">Dashboard Preview</div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-num">12</span>
+      <span class="stat-label">Angebote</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" style="color: var(--forest);">8</span>
+      <span class="stat-label">Veröffentlicht</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" style="color: var(--amber);">3</span>
+      <span class="stat-label">Ausstehend</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" style="color: var(--forest);">24</span>
+      <span class="stat-label">Bestätigt</span>
+    </div>
+  </div>
+
+  <div class="dash-card">
+    <div class="dash-avatar" style="background: var(--forest);">L</div>
+    <div class="dash-content" style="flex: 1;">
+      <h4>Lena Müller · <span class="badge badge-pending">Ausstehend</span></h4>
+      <p>Kleine Künstler — Malen & Basteln · Emma (3 J.) · vor 2 Std.</p>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn btn-primary" style="padding: 7px 16px; font-size: 13px;">Annehmen</button>
+      <button class="btn btn-outline" style="padding: 7px 16px; font-size: 13px;">Ablehnen</button>
+    </div>
+  </div>
+  <div class="dash-card">
+    <div class="dash-avatar" style="background: var(--amber);">T</div>
+    <div class="dash-content" style="flex: 1;">
+      <h4>Thomas Weber · <span class="badge badge-confirmed">Bestätigt</span></h4>
+      <p>Wasserflöhe — Babyschwimmen · Max (1 J.) · vor 1 Tag</p>
+    </div>
+  </div>
+  <div class="dash-card">
+    <div class="dash-avatar" style="background: var(--blush);">S</div>
+    <div class="dash-content" style="flex: 1;">
+      <h4>Sarah Klein · <span class="badge badge-declined">Abgelehnt</span></h4>
+      <p>Mini-Kicker — Fußball ab 3 · Ben (4 J.) · vor 3 Tagen</p>
+    </div>
+  </div>
+
+  <!-- ===== LOGIN FORM ===== -->
+  <div class="section-label">Auth Form Preview</div>
+
+  <div class="form-section">
+    <div class="form-card">
+      <h2>Willkommen zurück</h2>
+      <p class="form-subtitle">Melde dich an, um fortzufahren</p>
+      <div class="form-group">
+        <label>E-Mail-Adresse</label>
+        <input type="email" class="form-input" placeholder="name@beispiel.de">
+      </div>
+      <div class="form-group">
+        <label>Passwort</label>
+        <input type="password" class="form-input" placeholder="••••••••">
+      </div>
+      <div style="text-align: right; margin-bottom: 18px;">
+        <a href="#" class="form-link">Passwort vergessen?</a>
+      </div>
+      <button class="btn btn-primary" style="width: 100%; padding: 13px; font-size: 15px; border-radius: 12px;">Anmelden</button>
+      <div class="form-divider">oder</div>
+      <button class="btn-google">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Mit Google anmelden
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== CTA ===== -->
+  <div class="cta-section">
+    <h2>Bereit loszulegen?</h2>
+    <p>Entdecke die besten Kinderaktivitäten in Erfurt — kostenlos für Eltern.</p>
+    <button class="btn-cta">Jetzt kostenlos registrieren</button>
+  </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">🧭 ChildCompass</div>
+      <p style="margin-bottom: 16px; line-height: 1.6;">Erfurts Plattform für Kinderaktivitäten. Finde die perfekte Betreuung für dein Kind.</p>
+    </div>
+    <div>
+      <h4>Entdecken</h4>
+      <a href="#">Alle Aktivitäten</a>
+      <a href="#">Kitas</a>
+      <a href="#">Sportkurse</a>
+      <a href="#">Schwimmkurse</a>
+    </div>
+    <div>
+      <h4>Für Anbieter</h4>
+      <a href="#">Anbieter werden</a>
+      <a href="#">Dashboard</a>
+      <a href="#">Hilfe</a>
+    </div>
+    <div>
+      <h4>Rechtliches</h4>
+      <a href="#">Datenschutz</a>
+      <a href="#">Impressum</a>
+      <a href="#">AGB</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 ChildCompass. Alle Rechte vorbehalten.</span>
+    <span>Mit ❤️ in Erfurt gemacht</span>
+  </div>
+</footer>
+
+</body>
+</html>
