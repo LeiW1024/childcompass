@@ -134,7 +134,10 @@ N8N_WEBHOOK_URL=               # support chat
 | Full routes reference | `.claude/rules/routes.md` |
 | Design system | `.claude/rules/design-system.md` |
 | Known issues & MVP scope | `.claude/rules/known-issues.md` |
-| Coding standards & security | `.claude/rules/project-quality.md` |
+| API route rules | `.claude/rules/api-routes.md` |
+| Component rules | `.claude/rules/components.md` |
+| TypeScript rules | `.claude/rules/typescript.md` |
+| Prisma rules | `.claude/rules/prisma.md` |
 | DB schema & Prisma rules | `docs/agents/db-agent.md` |
 | API patterns | `docs/agents/backend-agent.md` |
 | Component patterns | `docs/agents/frontend-agent.md` |
