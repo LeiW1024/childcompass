@@ -131,9 +131,9 @@ N8N_WEBHOOK_URL=               # support chat
 
 | Topic | File |
 |---|---|
-| Full routes reference | `docs/rules/routes.md` |
-| Design system | `docs/rules/design-system.md` |
-| Known issues & MVP scope | `docs/rules/known-issues.md` |
+| Full routes reference | `.claude/rules/routes.md` |
+| Design system | `.claude/rules/design-system.md` |
+| Known issues & MVP scope | `.claude/rules/known-issues.md` |
 | Coding standards & security | `.claude/rules/project-quality.md` |
 | DB schema & Prisma rules | `docs/agents/db-agent.md` |
 | API patterns | `docs/agents/backend-agent.md` |
