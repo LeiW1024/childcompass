@@ -43,7 +43,7 @@ export default async function ClaimPage({ params }: { params: { token: string } 
           <div className="text-5xl mb-4">🏫</div>
           <h1 className="text-2xl font-extrabold mb-2">Claim your listing</h1>
           <p className="text-muted-foreground text-sm leading-relaxed max-w-md mx-auto">
-            We've listed <strong>{provider.businessName}</strong> on ChildCompass based on publicly
+            We&apos;ve listed <strong>{provider.businessName}</strong> on ChildCompass based on publicly
             available information. Claim your profile to manage your listing, update details,
             and receive booking requests directly.
           </p>

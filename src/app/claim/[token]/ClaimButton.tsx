@@ -22,7 +22,7 @@ export default function ClaimButton({ token, providerName }: { token: string; pr
 
   return (
     <div className="bg-white rounded-3xl border-2 border-primary p-7 text-center space-y-4">
-      <p className="font-extrabold text-lg">You're signed in — ready to claim!</p>
+      <p className="font-extrabold text-lg">You&apos;re signed in — ready to claim!</p>
       <p className="text-sm text-muted-foreground">
         By claiming, you confirm that you represent <strong>{providerName}</strong> and agree to our terms.
       </p>

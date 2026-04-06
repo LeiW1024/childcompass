@@ -127,7 +127,7 @@ export default async function ProviderDashboardPage() {
                       </p>
                       {b.message && (
                         <p className="text-xs text-muted-foreground mt-1 italic bg-muted/40 rounded-lg px-2 py-1">
-                          "{b.message}"
+                          &quot;{b.message}&quot;
                         </p>
                       )}
                     </div>
