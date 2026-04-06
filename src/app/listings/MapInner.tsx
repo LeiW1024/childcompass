@@ -318,9 +318,10 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
         setLocating(false);
         setGpsError(
           lang === "de"
-            ? "Standortzugriff erlauben oder erneut versuchen."
-            : "Allow location access or try again."
+            ? "Standortzugriff nicht verfügbar."
+            : "Location access not available."
         );
+        setTimeout(() => setGpsError(null), 3000);
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
