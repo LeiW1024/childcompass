@@ -38,11 +38,8 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef       = useRef<mapboxgl.Map | null>(null);
   const markersRef   = useRef<Map<string, mapboxgl.Marker>>(new Map());
-  const userDotRef   = useRef<mapboxgl.Marker | null>(null);
   const popupRef     = useRef<mapboxgl.Popup | null>(null);
-  const [ready,    setReady]    = useState(false);
-  const [locating, setLocating] = useState(false);
-  const [gpsError, setGpsError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
   // ── Init map ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -58,6 +55,14 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
     });
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left");
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
+
+    const geolocate = new mapboxgl.GeolocateControl({
+      positionOptions: { enableHighAccuracy: true },
+      trackUserLocation: true,
+      showUserHeading: true,
+    });
+    map.addControl(geolocate, "bottom-right");
+
     map.on("load", () => {
       mapRef.current = map;
       setMapLanguage(map, lang);
@@ -275,57 +280,6 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
     });
   }, [hoveredId, activeId]);
 
-  // ── GPS / Location ────────────────────────────────────────────────────────
-  const lastPosRef = useRef<{ lng: number; lat: number } | null>(null);
-
-  function placeUserDot(longitude: number, latitude: number) {
-    lastPosRef.current = { lng: longitude, lat: latitude };
-    mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 15, duration: 1200, essential: true });
-    userDotRef.current?.remove();
-    const dot = document.createElement("div");
-    dot.style.cssText = [
-      "width:16px", "height:16px", "border-radius:50%",
-      "background:#3b82f6", "border:3px solid white",
-      "box-shadow:0 0 0 5px rgba(59,130,246,0.25)",
-    ].join(";");
-    userDotRef.current = new mapboxgl.Marker({ element: dot })
-      .setLngLat([longitude, latitude]).addTo(mapRef.current!);
-  }
-
-  function flyToUser() {
-    if (!mapRef.current) return;
-    setGpsError(null);
-
-    // Cached position → fly instantly, refresh in background
-    if (lastPosRef.current) {
-      placeUserDot(lastPosRef.current.lng, lastPosRef.current.lat);
-      navigator.geolocation?.getCurrentPosition(
-        (pos) => placeUserDot(pos.coords.longitude, pos.coords.latitude),
-        () => {},
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-      );
-      return;
-    }
-
-    // First time → ask browser for location
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        placeUserDot(pos.coords.longitude, pos.coords.latitude);
-        setLocating(false);
-      },
-      () => {
-        setLocating(false);
-        setGpsError(
-          lang === "de"
-            ? "Standortzugriff nicht verfügbar."
-            : "Location access not available."
-        );
-        setTimeout(() => setGpsError(null), 3000);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-    );
-  }
 
   if (!TOKEN) return (
     <div style={{ width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",background:"#f8fafc",textAlign:"center",padding:24 }}>
@@ -337,49 +291,6 @@ export default function MapInner({ listings, activeId, hoveredId, onMarkerClick,
     <div style={{ position:"relative", width:"100%", height:"100%" }}>
       <div ref={containerRef} style={{ position:"absolute", top:0, left:0, right:0, bottom:0 }} />
 
-      {gpsError && (
-        <div style={{ position:"absolute",top:12,left:12,right:52,zIndex:20,background:"#fef2f2",border:"1px solid #fecaca",borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"flex-start",gap:8 }}>
-          <span style={{ fontSize:16,flexShrink:0 }}>📍</span>
-          <p style={{ fontSize:12,color:"#b91c1c",fontWeight:600,margin:0,lineHeight:1.4 }}>{gpsError}</p>
-          <button onClick={() => setGpsError(null)} style={{ marginLeft:"auto",fontSize:14,color:"#b91c1c",background:"none",border:"none",cursor:"pointer",flexShrink:0 }}>✕</button>
-        </div>
-      )}
-
-      {ready && (
-        <button
-          onClick={flyToUser}
-          disabled={locating}
-          title={lang === "de" ? "Meinen Standort anzeigen" : "Go to my location"}
-          style={{
-            position: "absolute", bottom: 40, right: 12, zIndex: 10,
-            width: 40, height: 40,
-            background: lastPosRef.current ? "#3b82f6" : "white",
-            boxShadow: lastPosRef.current
-              ? "0 2px 12px rgba(59,130,246,0.4)"
-              : "0 2px 8px rgba(0,0,0,0.15)",
-            border: "1px solid #e2e8f0",
-            borderRadius: 12,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: locating ? "not-allowed" : "pointer",
-            transition: "all 0.2s ease",
-          }}
-        >
-          {locating ? (
-            <div style={{
-              width: 16, height: 16, borderRadius: "50%",
-              border: "2.5px solid #3b82f6", borderTopColor: "transparent",
-              animation: "spin 0.7s linear infinite",
-            }} />
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-              stroke={lastPosRef.current ? "white" : "#3b82f6"} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3" fill={lastPosRef.current ? "white" : "#3b82f6"} />
-              <line x1="12" y1="2" x2="12" y2="6" /><line x1="12" y1="18" x2="12" y2="22" />
-              <line x1="2" y1="12" x2="6" y2="12" /><line x1="18" y1="12" x2="22" y2="12" />
-            </svg>
-          )}
-        </button>
-      )}
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }

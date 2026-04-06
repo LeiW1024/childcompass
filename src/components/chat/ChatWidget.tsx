@@ -119,8 +119,8 @@ export default function ChatWidget() {
       {open && (
         <div
           className={cn(
-            "fixed bottom-24 right-6 z-50 flex flex-col",
-            "w-[360px] h-[480px] max-sm:w-[calc(100vw-2rem)] max-sm:right-4",
+            "fixed bottom-24 left-6 z-50 flex flex-col",
+            "w-[360px] h-[480px] max-sm:w-[calc(100vw-2rem)] max-sm:left-4",
             "bg-card border border-border rounded-2xl shadow-xl animate-fade-in overflow-hidden"
           )}
           role="dialog"
@@ -210,7 +210,7 @@ export default function ChatWidget() {
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "fixed bottom-6 right-6 z-50",
+          "fixed bottom-6 left-6 z-50",
           "h-14 w-14 rounded-full shadow-lg",
           "flex items-center justify-center transition-all",
           open
