@@ -8,11 +8,16 @@
 
 | Feature | Description |
 |---|---|
-| **Activity Discovery** | Searchable, filterable directory of childcare providers and activities |
+| **Activity Discovery** | Searchable, filterable map-based directory of childcare providers and activities |
 | **Listing Detail Pages** | Age range, price, schedule, location, provider info |
 | **Booking Request Flow** | Parents request spots; providers confirm or decline |
-| **Provider Dashboard** | Create/edit listings, manage incoming requests |
-| **Parent Dashboard** | Track booking status (Requested / Confirmed / Declined) |
+| **Email Notifications** | Resend emails on booking request, confirm, decline, and cancel |
+| **Provider Dashboard** | Create/edit/publish listings, manage incoming booking requests |
+| **Provider Onboarding** | Step-by-step wizard to complete provider profile after signup |
+| **Parent Dashboard** | Track booking status, cancel requests, delete closed bookings |
+| **Auto-Geocoding** | Listing addresses auto-converted to map coordinates on save/publish |
+| **Provider Claim Flow** | Unclaimed admin-seeded listings can be claimed via token link |
+| **Admin Tools** | Web scraper, bulk importer, geocode runner, listing manager |
 
 ## User Roles
 
@@ -48,6 +53,7 @@
 | ORM | Prisma | 5.16.1 |
 | Database | PostgreSQL (hosted on Supabase) | — |
 | Connection Pooling | PgBouncer (via Supabase Transaction Pooler) | — |
+| Email | Resend | ^4.x |
 | Admin Scraper | Anthropic Claude API (optional) | — |
 
 ---
@@ -59,7 +65,7 @@ childcompass/
 ├── src/
 │   ├── app/
 │   │   ├── layout.tsx                    # Root layout, metadata, LangProvider
-│   │   ├── globals.css                   # Design system tokens + Tailwind base
+│   │   ├── globals.css                   # Design tokens + Tailwind base + scrollbar fix
 │   │   ├── page.tsx                      # Landing page
 │   │   ├── auth/login|register|error/    # Auth pages
 │   │   ├── listings/                     # Directory page + detail page
@@ -69,23 +75,31 @@ childcompass/
 │   │   │   └── [id]/page.tsx
 │   │   ├── dashboard/
 │   │   │   ├── page.tsx                  # Smart redirect (parent vs provider)
-│   │   │   ├── parent/                   # Bookings + children tabs
+│   │   │   ├── parent/                   # Bookings + children tabs + delete
 │   │   │   └── provider/                 # Listings + booking requests
-│   │   ├── api/                          # All route handlers
-│   │   │   ├── auth/callback/route.ts
-│   │   │   ├── listings/
-│   │   │   ├── bookings/
-│   │   │   ├── children/
-│   │   │   ├── providers/
-│   │   │   ├── claim/
-│   │   │   └── admin/
-│   │   └── claim/[token]/page.tsx
+│   │   │       ├── setup/                # Onboarding wizard
+│   │   │       └── listings/
+│   │   │           ├── new/              # Create + publish listing
+│   │   │           └── [id]/             # Edit + publish toggle + delete
+│   │   ├── api/
+│   │   │   ├── listings/route.ts         # GET public / POST provider (+ geocode)
+│   │   │   ├── bookings/route.ts         # POST (+ email provider)
+│   │   │   ├── bookings/[id]/route.ts    # PATCH status (+ email) / DELETE
+│   │   │   ├── providers/route.ts        # GET/POST provider profile
+│   │   │   ├── providers/[id]/route.ts   # PATCH provider profile
+│   │   │   ├── providers/listings/[id]/  # PATCH/DELETE listing (owner auth)
+│   │   │   ├── children/                 # GET/POST/PATCH/DELETE
+│   │   │   ├── claim/route.ts            # POST claim provider
+│   │   │   └── admin/                    # scrape, geocode, import, listings/[id]
+│   │   ├── admin/                        # Admin UI (force-dynamic)
+│   │   └── claim/[token]/page.tsx        # Provider claim flow
 │   ├── components/
 │   │   ├── layout/Navbar.tsx + NavbarClient.tsx + Footer.tsx
 │   │   ├── forms/LoginForm.tsx + RegisterForm.tsx + AuthPageWrapper.tsx
 │   │   ├── ui/LanguageSwitcher.tsx + SignOutButton.tsx + [Radix wrappers]
 │   │   ├── HomeContent.tsx
-│   │   └── BookingModal.tsx
+│   │   ├── BookingModal.tsx
+│   │   └── chat/ChatWidget.tsx           # n8n → Gemini support chat
 │   ├── lib/
 │   │   ├── prisma/client.ts              # Singleton Prisma instance
 │   │   ├── prisma/repositories.ts        # Query builders (profileRepo, listingRepo, etc.)
@@ -93,18 +107,20 @@ childcompass/
 │   │   ├── supabase/client.ts            # Browser-side client
 │   │   ├── supabase/server.ts            # Server + admin clients
 │   │   ├── supabase/middleware.ts        # Session refresh
+│   │   ├── email.ts                      # Resend: 4 booking lifecycle emails
+│   │   ├── geocode.ts                    # Mapbox address → lat/lng
 │   │   └── utils/cn.ts + dates.ts
 │   ├── types/
 │   │   ├── index.ts                      # All enums, labels, icons, color maps
 │   │   └── supabase.ts                   # Auto-generated types
-│   ├── styles/                           # Additional stylesheets
-│   ├── __tests__/                        # Test files
+│   ├── __tests__/                        # API + component tests
 │   └── middleware.ts                     # Route protection
 ├── prisma/
 │   ├── schema.prisma
-│   ├── seed.mjs                      # 17 providers + 32 listings
-│   ├── fix-coords.mjs                # Coordinate correction
+│   ├── seed.mjs                          # 17 providers + 32 listings
 │   └── migrations/
+├── .claude/rules/                        # Auto-loaded coding rules
+├── docs/agents/                          # Subagent context files
 ├── next.config.mjs
 ├── tailwind.config.ts
 └── .env.example

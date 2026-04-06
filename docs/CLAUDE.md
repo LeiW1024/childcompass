@@ -44,6 +44,7 @@ See `docs/agents/WORKFLOW.md` for how to run features across agents.
 | Auth | Supabase Auth | ^2.43.5 |
 | ORM | Prisma | 5.16.1 |
 | Database | PostgreSQL (Supabase) | — |
+| Email | Resend | ^4.x |
 | AI Scraper | Anthropic Claude API | — |
 | Support Chat | n8n + Google Gemini | — |
 
@@ -57,19 +58,36 @@ childcompass/
 │   ├── app/
 │   │   ├── page.tsx                  # Landing page
 │   │   ├── auth/                     # Login, register, error
-│   │   ├── listings/                 # Directory + detail + ListingsClient
-│   │   ├── dashboard/parent|provider # Role dashboards
-│   │   ├── api/                      # All API route handlers
-│   │   ├── admin/                    # Admin tools
+│   │   ├── listings/                 # Directory + detail + ListingsClient + MapInner
+│   │   ├── dashboard/
+│   │   │   ├── parent/               # Bookings + children tabs + delete button
+│   │   │   └── provider/             # Listings + booking requests
+│   │   │       ├── setup/            # Onboarding wizard (SetupWizard.tsx)
+│   │   │       └── listings/
+│   │   │           ├── new/          # Create + publish listing form
+│   │   │           └── [id]/         # Edit listing + publish toggle + delete
+│   │   ├── api/
+│   │   │   ├── listings/             # GET (public) / POST (provider)
+│   │   │   ├── bookings/             # POST + GET
+│   │   │   │   └── [id]/             # PATCH (status) + DELETE
+│   │   │   ├── providers/            # GET/POST provider profile
+│   │   │   │   ├── [id]/             # PATCH provider profile
+│   │   │   │   └── listings/[id]/    # PATCH/DELETE listing (owner only)
+│   │   │   ├── children/             # GET/POST/PATCH/DELETE children
+│   │   │   ├── claim/                # POST claim provider
+│   │   │   └── admin/                # scrape, geocode, import, listings/[id]
+│   │   ├── admin/                    # Admin UI pages
 │   │   └── claim/[token]/            # Provider claim flow
 │   ├── components/
 │   │   ├── layout/                   # Navbar, Footer
 │   │   ├── forms/                    # LoginForm, RegisterForm
 │   │   ├── ui/                       # Radix wrappers, LanguageSwitcher
-│   │   └── chat/                     # ChatWidget
+│   │   └── chat/                     # ChatWidget (n8n → Gemini)
 │   ├── lib/
 │   │   ├── prisma/                   # client, repositories, getOrCreateProfile
 │   │   ├── supabase/                 # browser client, server client, middleware
+│   │   ├── email.ts                  # Resend: booking request/confirm/decline/cancel
+│   │   ├── geocode.ts                # Mapbox geocoding for listing addresses
 │   │   └── utils/                    # cn, dates
 │   ├── types/index.ts                # Enums, label maps, formatAgeRange()
 │   └── middleware.ts                 # Route protection
@@ -79,8 +97,8 @@ childcompass/
 │   └── migrations/
 ├── docs/
 │   ├── agents/                       # db-agent, backend-agent, frontend-agent, WORKFLOW
-│   └── rules/                        # routes, design-system, known-issues
-└── .claude/rules/project-quality.md  # Coding standards (security, API, TypeScript)
+└── .claude/rules/                    # api-routes, components, typescript, prisma, tdd,
+                                      # routes, design-system, known-issues
 ```
 
 ---
@@ -112,6 +130,7 @@ DIRECT_URL=                    # Prisma migrations only
 ADMIN_SECRET_KEY=
 ANTHROPIC_API_KEY=             # admin scraper
 N8N_WEBHOOK_URL=               # support chat
+RESEND_API_KEY=                # email notifications (Resend)
 ```
 
 ---
