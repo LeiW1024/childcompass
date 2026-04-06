@@ -10,8 +10,11 @@
 
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = "ChildCompass <onboarding@resend.dev>";
+
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 // ─── sendBookingRequestEmail ──────────────────────────────────────────────────
 // Sent to provider when a parent creates a new booking request.
@@ -51,7 +54,7 @@ export async function sendBookingRequestEmail(
       .filter((line) => line !== undefined)
       .join("\n");
 
-    await resend.emails.send({
+    await getResend().emails.send({
       from: FROM,
       to,
       subject: `Neue Buchungsanfrage: ${data.listingTitle}`,
@@ -96,7 +99,7 @@ export async function sendBookingConfirmedEmail(
       `Das ChildCompass-Team`,
     ].join("\n");
 
-    await resend.emails.send({
+    await getResend().emails.send({
       from: FROM,
       to,
       subject: `Buchung bestätigt: ${data.listingTitle}`,
@@ -139,7 +142,7 @@ export async function sendBookingDeclinedEmail(
       `Das ChildCompass-Team`,
     ].join("\n");
 
-    await resend.emails.send({
+    await getResend().emails.send({
       from: FROM,
       to,
       subject: `Buchung abgelehnt: ${data.listingTitle}`,
@@ -179,7 +182,7 @@ export async function sendBookingCancelledEmail(
       `Das ChildCompass-Team`,
     ].join("\n");
 
-    await resend.emails.send({
+    await getResend().emails.send({
       from: FROM,
       to,
       subject: `Buchung storniert: ${data.listingTitle}`,
