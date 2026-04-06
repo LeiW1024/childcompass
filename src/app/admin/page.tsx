@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 // app/admin/page.tsx — Admin overview
 import { prisma } from "@/lib/prisma/client";
 import Link from "next/link";

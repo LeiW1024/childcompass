@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 // app/admin/import/page.tsx — Review & publish scraped listings
 import { prisma } from "@/lib/prisma/client";
 import { CATEGORY_LABELS } from "@/types";
