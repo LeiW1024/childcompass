@@ -198,9 +198,9 @@ export default async function ProviderDashboardPage() {
                         <span>📩 {bookingCount} {bookingCount === 1 ? "request" : "requests"}</span>
                         {listing.city && <span>📍 {listing.city}</span>}
                       </div>
-                      <Link href={`/listings/${listing.id}`}
+                      <Link href={`/dashboard/provider/listings/${listing.id}`}
                         className="text-xs font-extrabold text-primary hover:bg-primary/10 px-3 py-1.5 rounded-xl transition-colors">
-                        View →
+                        Edit →
                       </Link>
                     </div>
                   </div>

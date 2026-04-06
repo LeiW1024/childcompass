@@ -36,7 +36,7 @@ export default function HomeContent() {
         <div className="hidden lg:block absolute bottom-20 left-32 text-4xl animate-float delay-300">🎵</div>
         <div className="hidden lg:block absolute bottom-28 right-32 text-5xl animate-float delay-400">🌿</div>
 
-        <div className="relative max-w-3xl mx-auto text-center">
+        <div className="relative max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-white border border-border rounded-full px-4 py-1.5 text-base font-semibold text-muted-foreground mb-8 shadow-sm animate-fade-up">
             <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
             {t("heroBadge", lang)}
