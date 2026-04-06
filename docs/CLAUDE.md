@@ -8,7 +8,41 @@
 
 **ChildCompass** is a childcare and kids activity marketplace for parents in Erfurt, Germany. Children ages 0–6. Parents discover, filter, and book trusted activities. Providers publish listings and manage booking requests. Admins seed provider data via scraping tools.
 
-Built entirely through conversational AI development with Claude using a **vertical-slice approach** — one complete feature at a time.
+Built entirely through conversational AI development with Claude — evolved from a single-agent approach to a **3-subagent workflow** (DB / Backend / Frontend), each agent with focused context per domain layer.
+
+---
+
+## AI Development Workflow
+
+### Subagent Model (current)
+
+Each agent reads only its own context file and only touches its domain:
+
+| Agent | Context File | Owns |
+|---|---|---|
+| DB Agent | `docs/agents/db-agent.md` | `prisma/schema.prisma`, migrations, `repositories.ts` |
+| Backend Agent | `docs/agents/backend-agent.md` | `src/app/api/**`, `src/lib/supabase/`, `middleware.ts` |
+| Frontend Agent | `docs/agents/frontend-agent.md` | `src/app/**/page.tsx`, `src/components/**`, `globals.css` |
+
+See `docs/agents/WORKFLOW.md` for how to run features across agents.
+
+### Branch Strategy
+
+```
+main        ← stable, always deployable
+├── db      ← DB/schema changes only → PR to main
+├── backend ← API route changes only → PR to main
+└── frontend← UI/component changes only → PR to main
+```
+
+**Rule:** Switch to the matching branch before starting work. One domain per PR. After merge, rebase the other branches from `main`.
+
+### Why 3 Agents Instead of 1
+
+A single agent across all layers causes context pollution — frontend rules mix with DB rules, leading to drift and hallucinations. Specialized agents with narrow context are faster and more accurate.
+
+**Previous approach:** One agent, vertical-slice feature development
+**Current approach:** Domain-specialized subagents, parallel where independent, sequential for end-to-end features
 
 ---
 
