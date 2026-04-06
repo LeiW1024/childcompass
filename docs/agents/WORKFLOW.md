@@ -25,18 +25,20 @@ A single agent holding the entire codebase in context causes:
 
 ### End-to-end feature (needs all 3 layers) → run in sequence
 
+Each step follows TDD: write failing test first → implement → test passes.
+
 ```
-Step 1: DB Agent
-  Context: docs/agents/db-agent.md
-  Task: "Add [model/field] to schema, create repo methods"
+Step 1: DB Agent  (branch: db)
+  Context: docs/agents/db-agent.md + .claude/rules/tdd.md
+  Task: "Write repo test → add schema/field → implement repo method → test passes"
 
-Step 2: Backend Agent
-  Context: docs/agents/backend-agent.md
-  Task: "Add API route for [feature] using the new [model] repo methods"
+Step 2: Backend Agent  (branch: backend)
+  Context: docs/agents/backend-agent.md + .claude/rules/tdd.md
+  Task: "Write API route test → implement route → test passes"
 
-Step 3: Frontend Agent
-  Context: docs/agents/frontend-agent.md
-  Task: "Build the UI for [feature] calling [API endpoint]"
+Step 3: Frontend Agent  (branch: frontend)
+  Context: docs/agents/frontend-agent.md + .claude/rules/tdd.md
+  Task: "Write component test → build UI → test passes"
 ```
 
 ### Independent tasks → run in parallel
@@ -48,6 +50,21 @@ Parallel:
 ```
 
 These don't share code — run them at the same time.
+
+### CI gate — runs automatically on every PR
+
+```
+PR (db / backend / frontend → main)
+  ↓
+GitHub Actions (.github/workflows/ci.yml)
+  1. npm run lint
+  2. npm run type-check
+  3. npm run test
+  ↓
+Merge to main → Vercel auto-deploys
+```
+
+PRs that fail lint, type-check, or tests cannot merge.
 
 ---
 
