@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 import { getOrCreateProfile } from "@/lib/prisma/getOrCreateProfile";
+import { sendBookingRequestEmail } from "@/lib/email";
 
 export async function GET() {
   try {
@@ -57,6 +58,26 @@ export async function POST(request: Request) {
         child:   { connect: { id: childId } },
       },
     });
+
+    // Fire-and-forget: notify provider. Fetch provider profile with email relation.
+    const providerProfile = await prisma.providerProfile.findUnique({
+      where: { id: listing.providerProfileId },
+      include: { profile: { select: { email: true, fullName: true } } },
+    });
+    if (providerProfile?.profile?.email) {
+      sendBookingRequestEmail(providerProfile.profile.email, {
+        providerName: providerProfile.businessName,
+        parentName: profile.fullName ?? profile.email,
+        childName: child.firstName,
+        listingTitle: listing.title,
+        message: message ?? undefined,
+        dashboardUrl:
+          (process.env.NEXT_PUBLIC_APP_URL ?? "") + "/dashboard/provider/bookings",
+      }).catch((err) => {
+        console.error("[POST /api/bookings] email failed", err);
+      });
+    }
+
     return NextResponse.json({ data: booking, error: null }, { status: 201 });
   } catch (err) {
     if (err instanceof Error && "code" in err && (err as { code: string }).code === "P2002")
