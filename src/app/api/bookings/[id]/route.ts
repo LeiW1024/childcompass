@@ -4,6 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 import { getOrCreateProfile } from "@/lib/prisma/getOrCreateProfile";
 import type { BookingStatus } from "@prisma/client";
+import {
+  sendBookingConfirmedEmail,
+  sendBookingDeclinedEmail,
+  sendBookingCancelledEmail,
+} from "@/lib/email";
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   try {
@@ -14,9 +19,26 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     const profile = await getOrCreateProfile(user.id, user.email ?? "", user.user_metadata);
     const { status } = await request.json();
 
+    // Fetch booking with full relations needed for authorization and email notifications
     const booking = await prisma.booking.findUnique({
       where: { id: params.id },
-      include: { listing: { select: { providerProfileId: true } }, parent: { select: { id: true } } },
+      include: {
+        listing: {
+          select: {
+            title: true,
+            providerProfileId: true,
+            providerProfile: {
+              select: {
+                id: true,
+                businessName: true,
+                profile: { select: { email: true, fullName: true } },
+              },
+            },
+          },
+        },
+        parent: { select: { id: true, email: true, fullName: true } },
+        child: { select: { id: true, firstName: true } },
+      },
     });
     if (!booking) return NextResponse.json({ data: null, error: "Not found" }, { status: 404 });
 
@@ -47,6 +69,46 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         ...(status !== "CANCELLED" ? { respondedAt: new Date() } : {}),
       },
     });
+
+    // Fire-and-forget email notifications based on new status
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+    const parentEmail = booking.parent.email;
+    const parentName = booking.parent.fullName ?? booking.parent.email;
+    const childName = booking.child.firstName;
+    const listingTitle = booking.listing.title;
+    const providerName = booking.listing.providerProfile.businessName;
+    const providerEmail = booking.listing.providerProfile.profile?.email;
+
+    if (status === "CONFIRMED") {
+      sendBookingConfirmedEmail(parentEmail, {
+        parentName,
+        childName,
+        listingTitle,
+        providerName,
+        dashboardUrl: appUrl + "/dashboard/parent",
+      }).catch((err) => {
+        console.error("[PATCH /api/bookings/id] email failed", err);
+      });
+    } else if (status === "DECLINED") {
+      sendBookingDeclinedEmail(parentEmail, {
+        parentName,
+        childName,
+        listingTitle,
+        providerName,
+      }).catch((err) => {
+        console.error("[PATCH /api/bookings/id] email failed", err);
+      });
+    } else if (status === "CANCELLED" && providerEmail) {
+      sendBookingCancelledEmail(providerEmail, {
+        providerName,
+        parentName,
+        childName,
+        listingTitle,
+      }).catch((err) => {
+        console.error("[PATCH /api/bookings/id] email failed", err);
+      });
+    }
+
     return NextResponse.json({ data: updated, error: null });
   } catch (err) {
     console.error("[PATCH /api/bookings/id]", err);
