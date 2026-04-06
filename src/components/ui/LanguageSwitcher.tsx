@@ -99,6 +99,20 @@ export const LABELS: Record<string, Record<Lang, string>> = {
   monthLabel:         { en: "per month",                   de: "pro Monat" },
   weekLabel:          { en: "per week",                    de: "pro Woche" },
   yearLabel:          { en: "per year",                    de: "pro Jahr" },
+  // Edit listing form
+  editListingTitle:   { en: "Edit listing",                de: "Angebot bearbeiten" },
+  statusLiveLabel:    { en: "This listing is live",        de: "Dieses Angebot ist veröffentlicht" },
+  statusDraftLabel:   { en: "This listing is a draft",     de: "Dieses Angebot ist ein Entwurf" },
+  statusLiveDesc:     { en: "Parents can find and book this activity.", de: "Eltern können diese Aktivität finden und buchen." },
+  statusDraftDesc:    { en: "Only you can see this. Publish it when ready.", de: "Nur Sie können das sehen. Veröffentlichen Sie es, wenn Sie bereit sind." },
+  publishBtn:         { en: "Publish",                     de: "Veröffentlichen" },
+  unpublishBtn:       { en: "Unpublish",                   de: "Veröffentlichung rückgängig machen" },
+  deleteListingBtn:   { en: "Delete listing",              de: "Angebot löschen" },
+  deleteConfirmation: { en: "Delete this listing? This cannot be undone.", de: "Dieses Angebot löschen? Dies kann nicht rückgängig gemacht werden." },
+  changesSaved:       { en: "Changes saved.",              de: "Änderungen gespeichert." },
+  saveBtn:            { en: "Save changes",                de: "Änderungen speichern" },
+  savingBtn:          { en: "Saving…",                     de: "Wird gespeichert…" },
+  deletingBtn:        { en: "Deleting…",                   de: "Wird gelöscht…" },
 };
 
 export type LabelKey = keyof typeof LABELS;

@@ -2,15 +2,10 @@
 // EditListingForm — update or publish/unpublish an existing listing
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLang, t } from "@/components/ui/LanguageSwitcher";
 import { CATEGORY_LABELS, CATEGORY_ICONS, type ListingCategory } from "@/types";
 
 const CATEGORIES = Object.keys(CATEGORY_LABELS) as ListingCategory[];
-const PRICE_PER_OPTIONS = [
-  { value: "SESSION", label: "per session" },
-  { value: "MONTH",   label: "per month" },
-  { value: "WEEK",    label: "per week" },
-  { value: "YEAR",    label: "per year" },
-];
 
 type Listing = {
   id: string;
@@ -30,6 +25,7 @@ type Listing = {
 
 export default function EditListingForm({ listing }: { listing: Listing }) {
   const router = useRouter();
+  const { lang } = useLang();
   const [loading, setLoading] = useState(false);
   const [publishLoading, setPublishLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -78,7 +74,7 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
         ageMinMonths: Number(form.ageMinMonths),
         ageMaxMonths: Number(form.ageMaxMonths),
         spotsTotal: form.spotsTotal ? parseInt(form.spotsTotal) : null,
-      }, { onSuccess: "Changes saved." });
+      }, { onSuccess: t("changesSaved", lang) });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -100,7 +96,7 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
   }
 
   async function handleDelete() {
-    if (!confirm("Delete this listing? This cannot be undone.")) return;
+    if (!confirm(t("deleteConfirmation", lang))) return;
     setDeleteLoading(true);
     const res = await fetch(`/api/providers/listings/${listing.id}`, { method: "DELETE" });
     if (res.ok) {
@@ -121,12 +117,12 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
       }`}>
         <div>
           <p className="font-extrabold text-sm">
-            {listing.isPublished ? "This listing is live" : "This listing is a draft"}
+            {listing.isPublished ? t("statusLiveLabel", lang) : t("statusDraftLabel", lang)}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
             {listing.isPublished
-              ? "Parents can find and book this activity."
-              : "Only you can see this. Publish it when ready."}
+              ? t("statusLiveDesc", lang)
+              : t("statusDraftDesc", lang)}
           </p>
         </div>
         <button
@@ -139,16 +135,16 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
               : "bg-primary text-white hover:bg-primary/90"
           }`}
         >
-          {publishLoading ? "…" : listing.isPublished ? "Unpublish" : "Publish"}
+          {publishLoading ? "…" : listing.isPublished ? t("unpublishBtn", lang) : t("publishBtn", lang)}
         </button>
       </div>
 
       {/* Basic info */}
       <div className="bg-white rounded-2xl border border-border p-6 space-y-4">
-        <h2 className="font-extrabold">Basic info</h2>
+        <h2 className="font-extrabold">{t("basicInfo", lang)}</h2>
 
         <div>
-          <label className="block text-sm font-semibold mb-1.5">Title *</label>
+          <label className="block text-sm font-semibold mb-1.5">{t("titleField", lang)} *</label>
           <input
             type="text"
             required
@@ -159,7 +155,7 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1.5">Description *</label>
+          <label className="block text-sm font-semibold mb-1.5">{t("descriptionField", lang)} *</label>
           <textarea
             required
             rows={4}
@@ -170,7 +166,7 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1.5">Category *</label>
+          <label className="block text-sm font-semibold mb-1.5">{t("categoryField", lang)} *</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {CATEGORIES.map(cat => (
               <button
@@ -193,11 +189,11 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
 
       {/* Age + Price */}
       <div className="bg-white rounded-2xl border border-border p-6 space-y-4">
-        <h2 className="font-extrabold">Age range & pricing</h2>
+        <h2 className="font-extrabold">{t("ageRangeAndPricing", lang)}</h2>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold mb-1.5">Min age (months) *</label>
+            <label className="block text-sm font-semibold mb-1.5">{t("minAgeLabel", lang)} *</label>
             <input type="number" required min={0} max={216}
               value={form.ageMinMonths}
               onChange={e => set("ageMinMonths", e.target.value)}
@@ -205,7 +201,7 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1.5">Max age (months) *</label>
+            <label className="block text-sm font-semibold mb-1.5">{t("maxAgeLabel", lang)} *</label>
             <input type="number" required min={0} max={216}
               value={form.ageMaxMonths}
               onChange={e => set("ageMaxMonths", e.target.value)}
@@ -216,7 +212,7 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold mb-1.5">Price (€) *</label>
+            <label className="block text-sm font-semibold mb-1.5">{t("priceLabel", lang)} *</label>
             <input type="number" required min={0} step="0.01"
               value={form.price}
               onChange={e => set("price", e.target.value)}
@@ -224,23 +220,24 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1.5">Billing period *</label>
+            <label className="block text-sm font-semibold mb-1.5">{t("billingPeriodLabel", lang)} *</label>
             <select
               value={form.pricePer}
               onChange={e => set("pricePer", e.target.value)}
               className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white"
             >
-              {PRICE_PER_OPTIONS.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
+              <option value="SESSION">{t("sessionLabel", lang)}</option>
+              <option value="MONTH">{t("monthLabel", lang)}</option>
+              <option value="WEEK">{t("weekLabel", lang)}</option>
+              <option value="YEAR">{t("yearLabel", lang)}</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1.5">Total spots available</label>
+          <label className="block text-sm font-semibold mb-1.5">{t("totalSpotsLabel", lang)}</label>
           <input type="number" min={1}
-            placeholder="Leave empty if unlimited"
+            placeholder="Leer lassen, falls unbegrenzt"
             value={form.spotsTotal}
             onChange={e => set("spotsTotal", e.target.value)}
             className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -250,11 +247,11 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
 
       {/* Location + Schedule */}
       <div className="bg-white rounded-2xl border border-border p-6 space-y-4">
-        <h2 className="font-extrabold">Location & schedule</h2>
+        <h2 className="font-extrabold">{t("locationAndSchedule", lang)}</h2>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold mb-1.5">City</label>
+            <label className="block text-sm font-semibold mb-1.5">{t("cityLabel", lang)}</label>
             <input type="text"
               value={form.city}
               onChange={e => set("city", e.target.value)}
@@ -262,7 +259,7 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1.5">Address</label>
+            <label className="block text-sm font-semibold mb-1.5">{t("addressLabel", lang)}</label>
             <input type="text"
               value={form.address}
               onChange={e => set("address", e.target.value)}
@@ -272,9 +269,9 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1.5">Schedule notes</label>
+          <label className="block text-sm font-semibold mb-1.5">{t("scheduleNotesLabel", lang)}</label>
           <input type="text"
-            placeholder="e.g. Every Saturday 10:00–11:30"
+            placeholder="z.B. Jeden Samstag 10:00–11:30"
             value={form.scheduleNotes}
             onChange={e => set("scheduleNotes", e.target.value)}
             className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -299,14 +296,14 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
           onClick={() => router.push("/dashboard/provider")}
           className="border-2 border-border font-extrabold py-3 px-5 rounded-2xl hover:bg-muted transition text-sm"
         >
-          Back
+          {t("cancelBtn", lang)}
         </button>
         <button
           type="submit"
           disabled={loading}
           className="flex-1 bg-primary text-white font-extrabold py-3 rounded-2xl hover:bg-primary/90 transition disabled:opacity-60 text-sm"
         >
-          {loading ? "Saving…" : "Save changes"}
+          {loading ? t("savingBtn", lang) : t("saveBtn", lang)}
         </button>
         <button
           type="button"
@@ -314,7 +311,7 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
           disabled={deleteLoading}
           className="border-2 border-red-200 text-red-600 font-extrabold py-3 px-5 rounded-2xl hover:bg-red-50 transition disabled:opacity-60 text-sm"
         >
-          {deleteLoading ? "…" : "Delete"}
+          {deleteLoading ? t("deletingBtn", lang) : t("deleteListingBtn", lang)}
         </button>
       </div>
     </form>
