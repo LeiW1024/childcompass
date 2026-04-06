@@ -47,9 +47,10 @@ export async function PATCH(request: Request, { params }: Params) {
     const updated = await prisma.listing.update({ where: { id: params.id }, data });
 
     // Re-geocode if address/city changed or listing was just published
+    // On Vercel, we must await before returning so the serverless function doesn't terminate early
     const needsGeocode = "address" in body || "city" in body || body.isPublished === true;
     if (needsGeocode) {
-      geocodeListing(params.id).catch(err => {
+      await geocodeListing(params.id).catch(err => {
         console.error("[PATCH /api/providers/listings/:id] geocode failed", err);
       });
     }

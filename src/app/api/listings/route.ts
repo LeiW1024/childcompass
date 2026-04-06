@@ -41,8 +41,10 @@ export async function POST(request: Request) {
       providerProfile: { connect: { id: profile.provider.id } },
     });
 
-    // Fire-and-forget geocoding so the listing appears on the map
-    geocodeListing(listing.id).catch(err => {
+    // Geocode the listing so coordinates are saved for the map
+    // On Vercel, we must await this before returning, otherwise the serverless function
+    // terminates before the geocoding completes
+    await geocodeListing(listing.id).catch(err => {
       console.error("[POST /api/listings] geocode failed", err);
     });
 
