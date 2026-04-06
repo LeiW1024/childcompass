@@ -348,6 +348,70 @@ function BookingDetailModal({ booking, onClose }: { booking: Booking; onClose: (
   );
 }
 
+/* ── Delete Button ── */
+function DeleteButton({ bookingId, onDeleted }: { bookingId: string; onDeleted: (id: string) => void }) {
+  const [confirm, setConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [hovered, setHovered] = useState(false);
+
+  async function doDelete(e: React.MouseEvent) {
+    e.stopPropagation();
+    setLoading(true);
+    await onDeleted(bookingId);
+    setLoading(false);
+  }
+
+  if (!confirm) return (
+    <button
+      onClick={e => { e.stopPropagation(); setConfirm(true); }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      title="Buchung löschen"
+      style={{
+        position: "absolute", top: 10, right: 10,
+        width: 26, height: 26, borderRadius: "50%",
+        border: hovered ? "1.5px solid #fca5a5" : "1.5px solid #e2e8f0",
+        background: hovered ? "#fef2f2" : "white",
+        color: hovered ? "#dc2626" : "#94a3b8",
+        fontSize: 13, lineHeight: 1,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "pointer", transition: "all .15s", zIndex: 2,
+      }}
+    >
+      🗑
+    </button>
+  );
+
+  return (
+    <div
+      onClick={e => e.stopPropagation()}
+      style={{
+        position: "absolute", top: 8, right: 8,
+        background: "white", border: "1.5px solid #fca5a5",
+        borderRadius: 14, padding: "6px 10px",
+        display: "flex", alignItems: "center", gap: 6,
+        boxShadow: "0 4px 16px rgba(220,38,38,0.15)", zIndex: 10,
+      }}
+    >
+      <span style={{ fontSize: 12, color: "#991b1b", fontWeight: 700, whiteSpace: "nowrap" }}>
+        Löschen?
+      </span>
+      <button onClick={doDelete} disabled={loading} style={{
+        fontSize: 11, fontWeight: 800, padding: "3px 10px", borderRadius: 8,
+        background: "#dc2626", color: "white", border: "none", cursor: "pointer",
+      }}>
+        {loading ? "…" : "Ja"}
+      </button>
+      <button onClick={e => { e.stopPropagation(); setConfirm(false); }} style={{
+        fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 8,
+        background: "#f1f5f9", color: "#374151", border: "none", cursor: "pointer",
+      }}>
+        Nein
+      </button>
+    </div>
+  );
+}
+
 /* ── Cancel × Button ── */
 function CancelXButton({ bookingId, onCancelled }: { bookingId: string; onCancelled: (id: string) => void }) {
   const [confirm, setConfirm] = useState(false);
@@ -440,6 +504,13 @@ export default function ParentDashboardClient({
     });
     if (res.ok) {
       setBookings(prev => prev.map(b => b.id === id ? { ...b, status: "CANCELLED" } : b));
+    }
+  }
+
+  async function handleDeleteBooking(id: string) {
+    const res = await fetch(`/api/bookings/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setBookings(prev => prev.filter(b => b.id !== id));
     }
   }
 
@@ -622,9 +693,13 @@ export default function ParentDashboardClient({
                     </div>
                     <span style={{ color:"#cbd5e1", fontSize:18, flexShrink:0 }}>›</span>
                   </div>
-                  {/* × cancel button — top-right corner, only for active bookings */}
+                  {/* × cancel button — only for active bookings */}
                   {(b.status === "REQUESTED" || b.status === "CONFIRMED") && (
                     <CancelXButton bookingId={b.id} onCancelled={handleCancelBooking} />
+                  )}
+                  {/* 🗑 delete button — only for closed bookings */}
+                  {(b.status === "CANCELLED" || b.status === "DECLINED") && (
+                    <DeleteButton bookingId={b.id} onDeleted={handleDeleteBooking} />
                   )}
                 </div>
               );
