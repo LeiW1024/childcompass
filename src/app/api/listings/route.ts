@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { profileRepo, listingRepo } from "@/lib/prisma/repositories";
+import { geocodeListing } from "@/lib/geocode";
 import type { ListingCategory } from "@prisma/client";
 
 export async function GET(request: Request) {
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ data: null, error: "Provider account required" }, { status: 403 });
 
     const body = await request.json();
-    const { title, description, category, ageMinMonths, ageMaxMonths, price, pricePer, address, city, scheduleNotes, spotsTotal } = body;
+    const { title, description, category, ageMinMonths, ageMaxMonths, price, pricePer, address, city, scheduleNotes, spotsTotal, isPublished } = body;
 
     if (!title || !description || !category || ageMinMonths == null || ageMaxMonths == null || !price || !pricePer)
       return NextResponse.json({ data: null, error: "Missing required fields" }, { status: 400 });
@@ -36,8 +37,13 @@ export async function POST(request: Request) {
     const listing = await listingRepo.create({
       title, description, category, ageMinMonths, ageMaxMonths, price, pricePer,
       address, city, scheduleNotes, spotsTotal,
-      isPublished: false,
+      isPublished: isPublished === true,
       providerProfile: { connect: { id: profile.provider.id } },
+    });
+
+    // Fire-and-forget geocoding so the listing appears on the map
+    geocodeListing(listing.id).catch(err => {
+      console.error("[POST /api/listings] geocode failed", err);
     });
 
     return NextResponse.json({ data: listing, error: null }, { status: 201 });
