@@ -4,6 +4,7 @@ import { profileRepo } from "@/lib/prisma/repositories";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import NewListingForm from "./NewListingForm";
+import NewListingHeader from "./NewListingHeader";
 
 export default async function NewListingPage() {
   const supabase = createClient();
@@ -18,12 +19,7 @@ export default async function NewListingPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-extrabold">Create new listing</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Fill in the details and publish immediately. You can edit it anytime.
-          </p>
-        </div>
+        <NewListingHeader />
         <NewListingForm />
       </div>
     </div>

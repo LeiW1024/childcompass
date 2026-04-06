@@ -2,18 +2,14 @@
 // NewListingForm — provider creates a new activity listing
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLang, t } from "@/components/ui/LanguageSwitcher";
 import { CATEGORY_LABELS, CATEGORY_ICONS, type ListingCategory } from "@/types";
 
 const CATEGORIES = Object.keys(CATEGORY_LABELS) as ListingCategory[];
-const PRICE_PER_OPTIONS = [
-  { value: "SESSION", label: "per session" },
-  { value: "MONTH",   label: "per month" },
-  { value: "WEEK",    label: "per week" },
-  { value: "YEAR",    label: "per year" },
-];
 
 export default function NewListingForm() {
   const router = useRouter();
+  const { lang } = useLang();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,14 +64,14 @@ export default function NewListingForm() {
 
       {/* Title */}
       <div className="bg-white rounded-2xl border border-border p-6 space-y-4">
-        <h2 className="font-extrabold">Basic info</h2>
+        <h2 className="font-extrabold">{t("basicInfo", lang)}</h2>
 
         <div>
-          <label className="block text-sm font-semibold mb-1.5">Title *</label>
+          <label className="block text-sm font-semibold mb-1.5">{t("titleField", lang)} *</label>
           <input
             type="text"
             required
-            placeholder="e.g. Saturday Morning Football for Kids"
+            placeholder="z.B. Samstag Morgen Fußball für Kinder"
             value={form.title}
             onChange={e => set("title", e.target.value)}
             className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -83,11 +79,11 @@ export default function NewListingForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1.5">Description *</label>
+          <label className="block text-sm font-semibold mb-1.5">{t("descriptionField", lang)} *</label>
           <textarea
             required
             rows={4}
-            placeholder="Describe the activity, what children will learn, and what to expect..."
+            placeholder="Beschreiben Sie die Aktivität, was die Kinder lernen und was sie erwartet..."
             value={form.description}
             onChange={e => set("description", e.target.value)}
             className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
@@ -95,7 +91,7 @@ export default function NewListingForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1.5">Category *</label>
+          <label className="block text-sm font-semibold mb-1.5">{t("categoryField", lang)} *</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {CATEGORIES.map(cat => (
               <button
@@ -118,11 +114,11 @@ export default function NewListingForm() {
 
       {/* Age + Price */}
       <div className="bg-white rounded-2xl border border-border p-6 space-y-4">
-        <h2 className="font-extrabold">Age range & pricing</h2>
+        <h2 className="font-extrabold">{t("ageRangeAndPricing", lang)}</h2>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold mb-1.5">Min age (months) *</label>
+            <label className="block text-sm font-semibold mb-1.5">{t("minAgeLabel", lang)} *</label>
             <input
               type="number"
               required
@@ -132,10 +128,10 @@ export default function NewListingForm() {
               onChange={e => set("ageMinMonths", e.target.value)}
               className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
-            <p className="text-xs text-muted-foreground mt-1">e.g. 24 = 2 years</p>
+            <p className="text-xs text-muted-foreground mt-1">z.B. 24 = 2 Jahre</p>
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1.5">Max age (months) *</label>
+            <label className="block text-sm font-semibold mb-1.5">{t("maxAgeLabel", lang)} *</label>
             <input
               type="number"
               required
@@ -145,44 +141,45 @@ export default function NewListingForm() {
               onChange={e => set("ageMaxMonths", e.target.value)}
               className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
-            <p className="text-xs text-muted-foreground mt-1">e.g. 72 = 6 years</p>
+            <p className="text-xs text-muted-foreground mt-1">z.B. 72 = 6 Jahre</p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold mb-1.5">Price (€) *</label>
+            <label className="block text-sm font-semibold mb-1.5">{t("priceLabel", lang)} *</label>
             <input
               type="number"
               required
               min={0}
               step="0.01"
-              placeholder="e.g. 25"
+              placeholder="z.B. 25"
               value={form.price}
               onChange={e => set("price", e.target.value)}
               className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1.5">Billing period *</label>
+            <label className="block text-sm font-semibold mb-1.5">{t("billingPeriodLabel", lang)} *</label>
             <select
               value={form.pricePer}
               onChange={e => set("pricePer", e.target.value)}
               className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white"
             >
-              {PRICE_PER_OPTIONS.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
+              <option value="SESSION">{t("sessionLabel", lang)}</option>
+              <option value="MONTH">{t("monthLabel", lang)}</option>
+              <option value="WEEK">{t("weekLabel", lang)}</option>
+              <option value="YEAR">{t("yearLabel", lang)}</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1.5">Total spots available</label>
+          <label className="block text-sm font-semibold mb-1.5">{t("totalSpotsLabel", lang)}</label>
           <input
             type="number"
             min={1}
-            placeholder="Leave empty if unlimited"
+            placeholder="Leer lassen, falls unbegrenzt"
             value={form.spotsTotal}
             onChange={e => set("spotsTotal", e.target.value)}
             className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -192,24 +189,24 @@ export default function NewListingForm() {
 
       {/* Location + Schedule */}
       <div className="bg-white rounded-2xl border border-border p-6 space-y-4">
-        <h2 className="font-extrabold">Location & schedule</h2>
+        <h2 className="font-extrabold">{t("locationAndSchedule", lang)}</h2>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold mb-1.5">City</label>
+            <label className="block text-sm font-semibold mb-1.5">{t("cityLabel", lang)}</label>
             <input
               type="text"
-              placeholder="e.g. Erfurt"
+              placeholder="z.B. Erfurt"
               value={form.city}
               onChange={e => set("city", e.target.value)}
               className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1.5">Address</label>
+            <label className="block text-sm font-semibold mb-1.5">{t("addressLabel", lang)}</label>
             <input
               type="text"
-              placeholder="Street and number"
+              placeholder="Straße und Hausnummer"
               value={form.address}
               onChange={e => set("address", e.target.value)}
               className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -218,10 +215,10 @@ export default function NewListingForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1.5">Schedule notes</label>
+          <label className="block text-sm font-semibold mb-1.5">{t("scheduleNotesLabel", lang)}</label>
           <input
             type="text"
-            placeholder="e.g. Every Saturday 10:00–11:30"
+            placeholder="z.B. Jeden Samstag 10:00–11:30"
             value={form.scheduleNotes}
             onChange={e => set("scheduleNotes", e.target.value)}
             className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -241,14 +238,14 @@ export default function NewListingForm() {
           onClick={() => router.push("/dashboard/provider")}
           className="flex-1 border-2 border-border font-extrabold py-3 rounded-2xl hover:bg-muted transition text-sm"
         >
-          Cancel
+          {t("cancelBtn", lang)}
         </button>
         <button
           type="submit"
           disabled={loading}
           className="flex-1 bg-primary text-white font-extrabold py-3 rounded-2xl hover:bg-primary/90 transition disabled:opacity-60 text-sm"
         >
-          {loading ? "Publishing…" : "Publish listing"}
+          {loading ? t("publishingBtn", lang) : t("publishListingBtn", lang)}
         </button>
       </div>
     </form>
