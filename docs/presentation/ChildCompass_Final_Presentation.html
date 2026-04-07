@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ChildCompass — Final Portfolio Presentation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue:    #2563eb;
+    --blue-d:  #1d4ed8;
+    --blue-l:  #eff6ff;
+    --navy:    #0f172a;
+    --navy2:   #1e293b;
+    --amber:   #f59e0b;
+    --amber-l: #fffbeb;
+    --green:   #10b981;
+    --green-l: #ecfdf5;
+    --red:     #ef4444;
+    --purple:  #8b5cf6;
+    --slate:   #64748b;
+    --light:   #f8fafc;
+    --border:  #e2e8f0;
+    --white:   #ffffff;
+    --shadow:  0 20px 60px rgba(0,0,0,.12);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: #0a0f1e;
+    font-family: 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Deck ── */
+  #deck {
+    width: 100vw; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+
+  .slide {
+    width: min(1200px, 96vw);
+    height: min(720px, 96vh);
+    position: absolute;
+    opacity: 0;
+    transform: translateX(60px);
+    pointer-events: none;
+    transition: opacity .45s cubic-bezier(.4,0,.2,1), transform .45s cubic-bezier(.4,0,.2,1);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .slide.active {
+    opacity: 1; transform: translateX(0); pointer-events: all;
+  }
+  .slide.exit {
+    opacity: 0; transform: translateX(-60px);
+  }
+
+  /* ── Nav ── */
+  #nav {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(255,255,255,.08);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 50px;
+    padding: 10px 22px;
+    z-index: 100;
+  }
+  .nav-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    transition: background .2s, transform .15s;
+    background: rgba(255,255,255,.1);
+    color: white;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,.2); transform: scale(1.08); }
+  .nav-btn:disabled { opacity: .3; cursor: default; transform: none; }
+  #counter { color: rgba(255,255,255,.8); font-size: 13px; font-weight: 500; min-width: 60px; text-align: center; letter-spacing: .5px; }
+
+  #progress-bar {
+    position: fixed; top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--blue), var(--amber));
+    transition: width .4s ease;
+    z-index: 200;
+  }
+
+  /* ── Common layout helpers ── */
+  .slide-inner {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+  }
+
+  .s-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 20px 48px 0;
+    flex-shrink: 0;
+  }
+  .s-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--blue); opacity: .85;
+  }
+  .s-label.amber { color: var(--amber); }
+  .s-label.green { color: var(--green); }
+  .s-label.purple { color: var(--purple); }
+
+  .s-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: clamp(22px, 3vw, 36px);
+    font-weight: 800;
+    color: var(--navy);
+    line-height: 1.2;
+    margin-top: 8px;
+    padding: 0 48px;
+  }
+  .s-title span { color: var(--blue); }
+  .s-title .amber { color: var(--amber); }
+
+  .s-body {
+    flex: 1;
+    padding: 20px 48px 30px;
+    display: flex;
+    gap: 24px;
+    overflow: hidden;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.05);
+  }
+  .card-icon { font-size: 28px; margin-bottom: 10px; }
+  .card-title { font-size: 15px; font-weight: 700; color: var(--navy2); margin-bottom: 6px; }
+  .card-desc { font-size: 13px; color: var(--slate); line-height: 1.6; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; letter-spacing: .3px;
+    padding: 4px 10px; border-radius: 50px;
+  }
+  .badge-blue  { background: #dbeafe; color: #1d4ed8; }
+  .badge-amber { background: #fef3c7; color: #b45309; }
+  .badge-green { background: #d1fae5; color: #065f46; }
+  .badge-red   { background: #fee2e2; color: #991b1b; }
+  .badge-purple{ background: #ede9fe; color: #6d28d9; }
+  .badge-slate { background: #f1f5f9; color: #475569; }
+
+  ul.clean { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  ul.clean li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 14px; color: var(--navy2); line-height: 1.5;
+  }
+  ul.clean li .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--blue); flex-shrink: 0; margin-top: 6px;
+  }
+  ul.clean li .dot.amber { background: var(--amber); }
+  ul.clean li .dot.green { background: var(--green); }
+
+  /* ── SLIDE 1: Cover ── */
+  #s1 {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f2340 100%);
+  }
+  #s1 .cover-inner {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  #s1 .bg-circle {
+    position: absolute; border-radius: 50%;
+    background: rgba(37,99,235,.12);
+  }
+  #s1 .bg-circle:nth-child(1) { width: 500px; height: 500px; top: -150px; right: -100px; }
+  #s1 .bg-circle:nth-child(2) { width: 300px; height: 300px; bottom: -100px; left: -50px; background: rgba(245,158,11,.08); }
+  #s1 .logo-wrap {
+    width: 80px; height: 80px; border-radius: 22px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 38px;
+    box-shadow: 0 8px 32px rgba(37,99,235,.4);
+    margin-bottom: 28px;
+  }
+  #s1 h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: clamp(36px, 5vw, 60px);
+    font-weight: 900;
+    color: white;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  #s1 h1 span { color: var(--amber); }
+  #s1 .tagline {
+    font-size: 18px; color: rgba(255,255,255,.7);
+    font-weight: 400; margin-bottom: 40px; max-width: 560px;
+  }
+  #s1 .meta {
+    display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
+  }
+  #s1 .meta-chip {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 50px;
+    padding: 8px 18px;
+    font-size: 13px; color: rgba(255,255,255,.8); font-weight: 500;
+  }
+  #s1 .stack-row {
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 32px;
+  }
+  #s1 .stack-chip {
+    background: rgba(37,99,235,.2);
+    border: 1px solid rgba(37,99,235,.3);
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-size: 12px; font-weight: 600; color: #93c5fd;
+  }
+
+  /* ── SLIDE 2: Problem ── */
+  #s2 { background: var(--white); }
+  .problem-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%;
+  }
+  .problem-card {
+    border-radius: 14px; padding: 22px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .problem-card.pain { background: #fff1f2; border: 1.5px solid #fecaca; }
+  .problem-card.who  { background: #eff6ff; border: 1.5px solid #bfdbfe; }
+  .problem-card.stat { background: #f0fdf4; border: 1.5px solid #bbf7d0; }
+  .problem-card.sol  { background: #fefce8; border: 1.5px solid #fde68a; }
+  .problem-card .pc-icon { font-size: 32px; }
+  .problem-card .pc-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; opacity: .6; }
+  .problem-card.pain .pc-label { color: #b91c1c; }
+  .problem-card.who  .pc-label { color: #1d4ed8; }
+  .problem-card.stat .pc-label { color: #065f46; }
+  .problem-card.sol  .pc-label { color: #92400e; }
+  .problem-card .pc-title { font-size: 16px; font-weight: 700; color: var(--navy2); }
+  .problem-card .pc-text  { font-size: 13px; color: var(--slate); line-height: 1.6; }
+
+  /* ── SLIDE 3: Hypothesis ── */
+  #s3 { background: var(--light); }
+  .hypo-box {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border: 2px solid #bfdbfe;
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 4px;
+  }
+  .hypo-box .hb-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #1d4ed8; margin-bottom: 10px; }
+  .hypo-box .hb-text { font-size: 17px; font-weight: 600; color: var(--navy); line-height: 1.5; font-style: italic; }
+  .outcome-row { display: flex; gap: 14px; }
+  .outcome-card {
+    flex: 1; border-radius: 14px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .outcome-card.test { background: white; border: 1px solid var(--border); }
+  .outcome-card.result { background: #f0fdf4; border: 1.5px solid #bbf7d0; }
+  .outcome-card.learning { background: #fefce8; border: 1.5px solid #fde68a; }
+  .oc-step { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); }
+  .oc-title { font-size: 15px; font-weight: 700; color: var(--navy2); }
+  .oc-text  { font-size: 13px; color: var(--slate); line-height: 1.55; }
+
+  /* ── SLIDE 4: Journey Timeline ── */
+  #s4 { background: var(--white); }
+  .timeline {
+    display: flex; flex-direction: column; gap: 0; width: 100%;
+    position: relative; padding-left: 60px;
+  }
+  .timeline::before {
+    content: ''; position: absolute;
+    left: 19px; top: 16px; bottom: 16px;
+    width: 2px; background: linear-gradient(to bottom, #bfdbfe, #dbeafe 90%, transparent);
+  }
+  .tl-item {
+    display: flex; gap: 0; align-items: flex-start;
+    padding: 12px 0;
+    position: relative;
+  }
+  .tl-dot {
+    position: absolute; left: -48px; top: 14px;
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: white;
+    background: var(--blue);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 4px white, 0 0 0 5px #bfdbfe;
+  }
+  .tl-content { flex: 1; }
+  .tl-phase { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--blue); margin-bottom: 2px; }
+  .tl-title { font-size: 14px; font-weight: 700; color: var(--navy2); margin-bottom: 3px; }
+  .tl-desc  { font-size: 12.5px; color: var(--slate); line-height: 1.5; }
+  .tl-tags  { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+
+  /* ── SLIDE 5: MVP Features ── */
+  #s5 { background: var(--light); }
+  .feat-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; width: 100%;
+  }
+  .feat-card {
+    background: white; border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 16px;
+    display: flex; flex-direction: column; gap: 8px;
+    position: relative; overflow: hidden;
+  }
+  .feat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; background: var(--blue);
+  }
+  .feat-card.amber::before { background: var(--amber); }
+  .feat-card.green::before { background: var(--green); }
+  .feat-card.purple::before { background: var(--purple); }
+  .feat-card.red::before { background: var(--red); }
+  .feat-card.teal::before { background: #0d9488; }
+  .feat-icon { font-size: 26px; }
+  .feat-title { font-size: 14px; font-weight: 700; color: var(--navy2); }
+  .feat-items { font-size: 12px; color: var(--slate); line-height: 1.7; }
+
+  /* ── SLIDE 6: Technical Decisions ── */
+  #s6 { background: var(--white); }
+  .decision-list { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .decision-item {
+    background: var(--light); border-radius: 12px;
+    padding: 16px 20px;
+    display: flex; gap: 16px; align-items: flex-start;
+    border-left: 4px solid var(--blue);
+  }
+  .decision-item.amber { border-left-color: var(--amber); }
+  .decision-item.green { border-left-color: var(--green); }
+  .decision-item.purple { border-left-color: var(--purple); }
+  .di-icon { font-size: 22px; flex-shrink: 0; }
+  .di-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--slate); margin-bottom: 2px; }
+  .di-title { font-size: 14px; font-weight: 700; color: var(--navy2); margin-bottom: 3px; }
+  .di-text  { font-size: 13px; color: var(--slate); line-height: 1.5; }
+
+  /* ── SLIDE 7: Key Learnings AI ── */
+  #s7 { background: #f8fafc; }
+  .ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; }
+  .ai-card {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 14px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+  }
+  .ai-card .ai-icon { font-size: 28px; margin-bottom: 10px; }
+  .ai-card .ai-title { font-size: 15px; font-weight: 700; color: white; margin-bottom: 8px; }
+  .ai-card .ai-items { display: flex; flex-direction: column; gap: 6px; }
+  .ai-card .ai-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: 13px; color: rgba(255,255,255,.75); line-height: 1.5;
+  }
+  .ai-card .ai-item::before {
+    content: '→'; color: var(--amber); font-weight: 700;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .loop-box {
+    background: rgba(37,99,235,.2); border: 1px solid rgba(37,99,235,.35);
+    border-radius: 14px; padding: 16px 20px;
+    display: flex; align-items: center; gap: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .loop-step {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 0 8px;
+  }
+  .loop-step .ls-icon { font-size: 20px; }
+  .loop-step .ls-text { font-size: 11px; color: rgba(255,255,255,.7); text-align: center; max-width: 70px; }
+  .loop-arrow { color: var(--amber); font-size: 18px; font-weight: 700; padding: 0 4px; align-self: center; }
+
+  /* ── SLIDE 8: AI Features ── */
+  #s8 { background: var(--light); }
+  .ai-feat-row { display: flex; gap: 16px; width: 100%; }
+  .ai-feat-main {
+    flex: 1.4;
+    background: white; border-radius: 16px; border: 1px solid var(--border);
+    padding: 22px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .ai-feat-side { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+  .ai-feat-card {
+    background: white; border-radius: 14px; border: 1px solid var(--border);
+    padding: 18px; flex: 1;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+
+  .afm-title { font-size: 16px; font-weight: 800; color: var(--navy); }
+  .afm-sub   { font-size: 13px; color: var(--slate); line-height: 1.55; }
+
+  .flow-diagram {
+    display: flex; align-items: center; gap: 0;
+    background: #f8fafc; border-radius: 12px; padding: 14px 16px;
+    flex-wrap: nowrap; overflow: hidden;
+  }
+  .flow-node {
+    background: white; border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 8px 12px; text-align: center;
+    flex-shrink: 0;
+  }
+  .flow-node .fn-icon { font-size: 18px; }
+  .flow-node .fn-label { font-size: 10px; font-weight: 600; color: var(--navy2); margin-top: 3px; }
+  .flow-arrow { color: var(--blue); font-size: 16px; padding: 0 6px; flex-shrink: 0; font-weight: 700; }
+
+  /* ── SLIDE 9: n8n Workflow ── */
+  #s9 { background: var(--white); }
+  .workflow-container {
+    display: flex; flex-direction: column; gap: 20px; width: 100%; height: 100%;
+  }
+  .wf-diagram {
+    background: #0f172a; border-radius: 16px;
+    padding: 24px; flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; flex-wrap: nowrap;
+  }
+  .wf-node {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    position: relative;
+  }
+  .wf-box {
+    border-radius: 12px;
+    padding: 10px 16px;
+    text-align: center;
+    min-width: 100px;
+  }
+  .wf-box .wb-icon { font-size: 20px; margin-bottom: 4px; }
+  .wf-box .wb-title { font-size: 12px; font-weight: 700; }
+  .wf-box .wb-sub   { font-size: 10px; opacity: .75; margin-top: 2px; }
+  .wf-box.user    { background: #1e40af; color: white; }
+  .wf-box.widget  { background: #2563eb; color: white; }
+  .wf-box.api     { background: #0f2340; border: 1px solid #2563eb; color: #93c5fd; }
+  .wf-box.n8n     { background: #7c3aed; color: white; }
+  .wf-box.ai      { background: #059669; color: white; }
+  .wf-box.res     { background: #d97706; color: white; }
+  .wf-connector {
+    display: flex; align-items: center; gap: 0;
+    color: rgba(255,255,255,.4); font-size: 20px;
+    padding: 0 6px;
+  }
+  .wf-connector .wfc-line {
+    height: 2px; width: 30px;
+    background: linear-gradient(90deg, rgba(255,255,255,.3), rgba(255,255,255,.1));
+  }
+  .wf-connector .wfc-arrow { color: rgba(255,255,255,.5); font-size: 14px; }
+
+  .wf-desc-row { display: flex; gap: 12px; }
+  .wf-desc-item {
+    flex: 1; background: #f8fafc; border-radius: 10px; border: 1px solid var(--border);
+    padding: 12px 16px;
+  }
+  .wdi-num { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--blue); margin-bottom: 3px; }
+  .wdi-title { font-size: 13px; font-weight: 700; color: var(--navy2); margin-bottom: 3px; }
+  .wdi-text  { font-size: 12px; color: var(--slate); line-height: 1.5; }
+
+  /* ── SLIDE 10: Bugs & Fixes ── */
+  #s10 { background: var(--light); }
+  .bug-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; }
+  .bug-card {
+    background: white; border-radius: 14px;
+    border: 1px solid var(--border); padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .bug-top { display: flex; align-items: flex-start; gap: 10px; }
+  .bug-badge { flex-shrink: 0; margin-top: 2px; }
+  .bug-title { font-size: 14px; font-weight: 700; color: var(--navy2); }
+  .bug-root  { font-size: 12px; color: var(--slate); line-height: 1.5; }
+  .bug-fix   {
+    background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;
+    padding: 10px 12px; font-size: 12px; color: #065f46; line-height: 1.55;
+    display: flex; gap: 7px; align-items: flex-start;
+  }
+  .bug-fix::before { content: '✅'; flex-shrink: 0; }
+
+  /* ── SLIDE 11: Vision ── */
+  #s11 { background: linear-gradient(135deg, #0f172a, #1a2744); }
+  #s11 .s-title { color: white; }
+  #s11 .s-label { color: var(--green); }
+  .vision-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; }
+  .vision-card {
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+    border-radius: 14px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .vc-phase { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .vc-phase.p1 { color: var(--amber); }
+  .vc-phase.p2 { color: #34d399; }
+  .vc-phase.p3 { color: #a78bfa; }
+  .vc-phase.p4 { color: #f472b6; }
+  .vc-title { font-size: 15px; font-weight: 700; color: white; }
+  .vc-items { display: flex; flex-direction: column; gap: 5px; }
+  .vc-item  { font-size: 12.5px; color: rgba(255,255,255,.7); line-height: 1.5; display: flex; gap: 7px; }
+  .vc-item::before { content: '→'; color: var(--amber); font-weight: 700; flex-shrink: 0; }
+
+  /* ── SLIDE 12: Thank You ── */
+  #s12 {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f2340 100%);
+  }
+  #s12 .ty-inner {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 60px;
+    position: relative; overflow: hidden;
+  }
+  #s12 .ty-circle {
+    position: absolute; border-radius: 50%; pointer-events: none;
+  }
+  #s12 .ty-circle:nth-child(1) { width: 400px; height: 400px; top: -150px; left: -100px; background: rgba(37,99,235,.08); }
+  #s12 .ty-circle:nth-child(2) { width: 300px; height: 300px; bottom: -100px; right: -50px; background: rgba(245,158,11,.06); }
+  #s12 .ty-badge {
+    background: rgba(37,99,235,.2); border: 1px solid rgba(37,99,235,.4);
+    border-radius: 50px; padding: 8px 20px;
+    font-size: 13px; font-weight: 600; color: #93c5fd;
+    margin-bottom: 28px;
+  }
+  #s12 h2 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 900; color: white;
+    line-height: 1.15; margin-bottom: 14px;
+    letter-spacing: -1px;
+  }
+  #s12 h2 span { color: var(--amber); }
+  #s12 .ty-sub { font-size: 16px; color: rgba(255,255,255,.65); max-width: 520px; line-height: 1.6; margin-bottom: 40px; }
+  .qa-topics {
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+    max-width: 600px; margin: 0 auto 36px;
+  }
+  .qa-chip {
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 50px;
+    padding: 8px 18px;
+    font-size: 13px; color: rgba(255,255,255,.8); font-weight: 500;
+  }
+  #s12 .ty-url {
+    font-size: 14px; color: rgba(255,255,255,.5);
+    font-family: monospace; letter-spacing: .5px;
+  }
+  #s12 .ty-url span { color: #93c5fd; }
+
+  /* ── Decorative two-column layout for some slides ── */
+  .col-left  { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+  .col-right { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+
+  /* ── Divider ── */
+  .divider {
+    width: 40px; height: 3px; border-radius: 2px;
+    background: var(--blue); margin: 4px 0 12px;
+  }
+  .divider.amber { background: var(--amber); }
+
+  /* ── Stat box ── */
+  .stat-row { display: flex; gap: 12px; }
+  .stat-box {
+    flex: 1; background: var(--light); border-radius: 12px;
+    border: 1px solid var(--border); padding: 16px;
+    text-align: center;
+  }
+  .stat-num  { font-size: 28px; font-weight: 800; color: var(--blue); }
+  .stat-label{ font-size: 12px; color: var(--slate); font-weight: 500; margin-top: 2px; }
+
+  /* ── Keyboard hint ── */
+  #hint {
+    position: fixed; top: 20px; right: 24px;
+    font-size: 11px; color: rgba(255,255,255,.35);
+    letter-spacing: .5px;
+  }
+
+  @keyframes mapZoom {
+    0%   { transform: scale(1.0) translate(0, 0); }
+    33%  { transform: scale(1.18) translate(-3%, -2%); }
+    66%  { transform: scale(1.22) translate(2%, -4%); }
+    100% { transform: scale(1.12) translate(-1%, 2%); }
+  }
+
+  /* ── Status Modal ── */
+  #statusModal {
+    display: none;
+    position: fixed; inset: 0; z-index: 999;
+    background: rgba(10,15,30,.85);
+    backdrop-filter: blur(8px);
+    align-items: center; justify-content: center;
+  }
+  #statusModal.open { display: flex; }
+  #statusModal .sm-box {
+    background: #0f172a;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 20px;
+    padding: 28px 32px;
+    width: min(820px, 92vw);
+    max-height: 88vh;
+    overflow: hidden;
+    display: flex; flex-direction: column; gap: 16px;
+    position: relative;
+  }
+  #statusModal .sm-header {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  #statusModal .sm-title {
+    font-size: 16px; font-weight: 800; color: white;
+  }
+  #statusModal .sm-close {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: rgba(255,255,255,.1); border: none;
+    color: rgba(255,255,255,.7); font-size: 16px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background .2s;
+  }
+  #statusModal .sm-close:hover { background: rgba(255,255,255,.2); }
+  #statusModal .sm-steps {
+    display: flex; gap: 8px; align-items: center;
+  }
+  #statusModal .sm-step-dot {
+    height: 4px; border-radius: 2px; flex: 1;
+    background: rgba(255,255,255,.15);
+    transition: background .3s;
+    cursor: pointer;
+  }
+  #statusModal .sm-step-dot.active { background: #10b981; }
+  #statusModal .sm-content {
+    display: flex; gap: 20px; align-items: flex-start; flex: 1; overflow: hidden;
+  }
+  #statusModal .sm-img-wrap {
+    flex: 1.4; border-radius: 12px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,.1);
+    background: #1e293b;
+    display: flex; align-items: center; justify-content: center;
+    max-height: 420px;
+  }
+  #statusModal .sm-img-wrap img {
+    width: 100%; height: 100%; object-fit: contain;
+    opacity: 0; transform: translateY(12px);
+    transition: opacity .4s ease, transform .4s ease;
+  }
+  #statusModal .sm-img-wrap img.loaded { opacity: 1; transform: translateY(0); }
+  #statusModal .sm-info { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+  #statusModal .sm-num  { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #10b981; }
+  #statusModal .sm-caption { font-size: 16px; font-weight: 700; color: white; line-height: 1.4; }
+  #statusModal .sm-desc { font-size: 13px; color: rgba(255,255,255,.65); line-height: 1.6; }
+  #statusModal .sm-nav { display: flex; gap: 10px; margin-top: auto; }
+  #statusModal .sm-nav-btn {
+    flex: 1; padding: 10px; border-radius: 10px; border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: background .2s;
+  }
+  #statusModal .sm-nav-btn.prev { background: rgba(255,255,255,.08); color: rgba(255,255,255,.7); }
+  #statusModal .sm-nav-btn.prev:hover { background: rgba(255,255,255,.14); }
+  #statusModal .sm-nav-btn.next { background: #10b981; color: white; }
+  #statusModal .sm-nav-btn.next:hover { background: #059669; }
+  #statusModal .sm-nav-btn:disabled { opacity: .3; cursor: default; }
+
+  /* ── Fullscreen button ── */
+  #fsBtn {
+    position: fixed; top: 18px; left: 24px;
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.15);
+    background: rgba(255,255,255,.08);
+    backdrop-filter: blur(12px);
+    color: rgba(255,255,255,.7);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .2s, transform .15s, color .2s;
+    z-index: 200;
+  }
+  #fsBtn:hover { background: rgba(255,255,255,.18); color: white; transform: scale(1.08); }
+
+  /* ── Fullscreen mode ── */
+  body.is-fullscreen .slide {
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  body.is-fullscreen #deck {
+    width: 100vw;
+    height: 100vh;
+  }
+  body.is-fullscreen #hint { display: none; }
+  body.is-fullscreen #fsBtn { top: 16px; left: 20px; }
+
+  /* ── Per-slide page number ── */
+  .slide-pg {
+    position: absolute;
+    bottom: 14px;
+    right: 18px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    color: rgba(255,255,255,.35);
+    pointer-events: none;
+    z-index: 10;
+  }
+  .slide-pg.dark { color: rgba(15,23,42,.3); }
+
+  /* ════════════════════════════════════════════
+     THEME SYSTEM — DARK / LIGHT MODE
+     ════════════════════════════════════════════ */
+
+  /* Toggle button */
+  #themeBtn {
+    position: fixed; top: 18px; right: 24px;
+    width: 38px; height: 38px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.15);
+    background: rgba(255,255,255,.08); backdrop-filter: blur(12px);
+    color: rgba(255,255,255,.8); font-size: 17px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .2s; z-index: 200;
+  }
+  #themeBtn:hover { background: rgba(255,255,255,.18); transform: scale(1.08); }
+  /* Move hint so it doesn't overlap the toggle */
+  #hint { right: 70px; }
+
+  /* ── DARK MODE ─────────────────────────── */
+  /* Override CSS variables → cascades to all class-based rules automatically */
+  html.dark {
+    --white:  #1e293b;
+    --light:  #0f172a;
+    --border: #334155;
+    --navy:   #f1f5f9;
+    --navy2:  #e2e8f0;
+    --slate:  #94a3b8;
+  }
+  /* Hardcoded bg in CSS rules (not using variables) */
+  html.dark #s7   { background: #0f172a; }
+  html.dark .problem-card.pain { background: #1a0508 !important; border-color: #7f1d1d !important; }
+  html.dark .problem-card.who  { background: #0c1a35 !important; border-color: #1e3a8a !important; }
+  html.dark .problem-card.stat { background: #011a0b !important; border-color: #14532d !important; }
+  html.dark .problem-card.sol  { background: #1c1200 !important; border-color: #78350f !important; }
+  html.dark .outcome-card.test    { background: #1e293b !important; }
+  html.dark .outcome-card.result  { background: #011a0b !important; border-color: #14532d !important; }
+  html.dark .outcome-card.learning{ background: #1c1200 !important; border-color: #78350f !important; }
+  html.dark .hypo-box { background: linear-gradient(135deg,#0c1a35,#071630) !important; border-color: #1e3a8a !important; }
+  html.dark .bug-fix  { background: #011a0b !important; border-color: #14532d !important; color: #86efac !important; }
+  html.dark .tl-dot   { box-shadow: 0 0 0 4px #1e293b, 0 0 0 5px #334155 !important; }
+  html.dark .feat-card { background: #1e293b !important; }
+
+  /* Inline-style overrides (slides 6–10) */
+  html.dark [style*="background:white"],
+  html.dark [style*="background: white"]  { background: #1e293b !important; }
+  html.dark [style*="background:#f8fafc"] { background: #0f172a !important; }
+  html.dark [style*="background:#faf9ff"],
+  html.dark [style*="background:#f5f3ff"] { background: #1a0f35 !important; }
+  html.dark [style*="background:#f0f7ff"],
+  html.dark [style*="background:#eff6ff"] { background: #0c1a35 !important; }
+  html.dark [style*="background:#fffbeb"] { background: #1c1200 !important; }
+
+  html.dark [style*="color:#0f172a"]  { color: #f1f5f9 !important; }
+  html.dark [style*="color:#1e1b4b"]  { color: #c4b5fd !important; }
+  html.dark [style*="color:#1e3a8a"]  { color: #93c5fd !important; }
+  html.dark [style*="color:#78350f"]  { color: #fde68a !important; }
+  html.dark [style*="color:#14532d"]  { color: #86efac !important; }
+  html.dark [style*="color:#334155"]  { color: #cbd5e1 !important; }
+  html.dark [style*="color:#374151"]  { color: #e2e8f0 !important; }
+  html.dark [style*="color:#475569"]  { color: #94a3b8 !important; }
+
+  html.dark [style*="border:1.5px solid #ddd6fe"],
+  html.dark [style*="border:1px solid #ddd6fe"]  { border-color: #4c1d95 !important; }
+  html.dark [style*="border-bottom:1px solid #ddd6fe"] { border-bottom-color: #4c1d95 !important; }
+  html.dark [style*="border:1.5px solid #bfdbfe"],
+  html.dark [style*="border:1px solid #bfdbfe"]  { border-color: #1e3a8a !important; }
+  html.dark [style*="border-bottom:1px solid #bfdbfe"] { border-bottom-color: #1e3a8a !important; }
+  html.dark [style*="border:1.5px solid #fde68a"] { border-color: #78350f !important; }
+  html.dark [style*="border:1.5px solid #bbf7d0"],
+  html.dark [style*="border:1px solid #bbf7d0"]  { border-color: #14532d !important; }
+  html.dark [style*="border:1.5px solid #e2e8f0"],
+  html.dark [style*="border:1px solid #e2e8f0"]  { border-color: #334155 !important; }
+  html.dark code { background: rgba(255,255,255,.1) !important; }
+  html.dark .slide-pg.dark { color: rgba(241,245,249,.3) !important; }
+
+  /* ── LIGHT MODE ────────────────────────── */
+  /* Override dark slides (s1, s11, s12) → light */
+  html.light #s1  { background: #f8fafc !important; }
+  html.light #s11 { background: #f8fafc !important; }
+  html.light #s11 .slide-inner { background: #f8fafc !important; }
+  html.light #s12 { background: #f8fafc !important; }
+
+  html.light #s1 h1          { color: #0f172a !important; }
+  html.light #s1 h1 span     { color: var(--amber) !important; }
+  html.light #s1 .tagline    { color: #475569 !important; }
+  html.light #s1 .meta-chip  { background: rgba(15,23,42,.06) !important; border-color: rgba(15,23,42,.1) !important; color: #0f172a !important; }
+  html.light #s1 .stack-chip { background: rgba(37,99,235,.1) !important; border-color: rgba(37,99,235,.2) !important; color: #1d4ed8 !important; }
+
+  html.light #s11 .s-title { color: #0f172a !important; }
+  html.light .vision-card  { background: white !important; border: 1px solid #e2e8f0 !important; }
+  html.light .vc-title     { color: #0f172a !important; }
+  html.light .vc-item      { color: #475569 !important; }
+
+  html.light #s12 h2           { color: #0f172a !important; }
+  html.light #s12 h2 span      { color: var(--amber) !important; }
+  html.light #s12 .ty-sub      { color: #475569 !important; }
+  html.light #s12 .ty-badge    { background: rgba(37,99,235,.1) !important; border-color: rgba(37,99,235,.2) !important; color: #1d4ed8 !important; }
+  html.light #s12 .qa-chip     { background: rgba(15,23,42,.05) !important; border-color: rgba(15,23,42,.1) !important; color: #0f172a !important; }
+  html.light #s12 .ty-url      { color: #64748b !important; }
+  html.light #s12 .ty-url a   { color: #2563eb !important; border-bottom-color: rgba(37,99,235,.3) !important; }
+
+  /* Light mode: chrome */
+  html.light #nav       { background: rgba(15,23,42,.07); border-color: rgba(15,23,42,.12); }
+  html.light .nav-btn   { background: rgba(15,23,42,.08); color: #0f172a; }
+  html.light .nav-btn:hover { background: rgba(15,23,42,.14); }
+  html.light #counter   { color: rgba(15,23,42,.7); }
+  html.light #fsBtn, html.light #themeBtn { background: rgba(15,23,42,.07); border-color: rgba(15,23,42,.12); color: rgba(15,23,42,.6); }
+  html.light #fsBtn:hover, html.light #themeBtn:hover { background: rgba(15,23,42,.14); color: #0f172a; }
+  html.light #hint      { color: rgba(15,23,42,.3); }
+</style>
+</head>
+<body>
+
+<div id="progress-bar" style="width:8.33%"></div>
+<div id="hint">← → Arrow keys &nbsp;·&nbsp; F for fullscreen</div>
+<button id="fsBtn" title="Toggle fullscreen (F)">⛶</button>
+<button id="themeBtn" title="Toggle dark / light mode">🌙</button>
+
+<div id="deck">
+
+  <!-- ══ SLIDE 1: COVER ══ -->
+  <div class="slide active" id="s1">
+    <div class="cover-inner">
+      <div class="bg-circle"></div>
+      <div class="bg-circle"></div>
+      <div class="logo-wrap">🧭</div>
+      <h1>Child<span>Compass</span></h1>
+      <p class="tagline">Digital Wayfinding for Families — Childcare & Kids Activity Marketplace for Erfurt, Germany</p>
+      <div class="meta">
+        <div class="meta-chip">👤 Lei Wang</div>
+        <div class="meta-chip">🎓 AI Product Engineering Bootcamp</div>
+        <div class="meta-chip">📅 Final Portfolio Presentation</div>
+      </div>
+      <div class="stack-row">
+        <div class="stack-chip">Next.js 14</div>
+        <div class="stack-chip">Supabase</div>
+        <div class="stack-chip">Prisma</div>
+        <div class="stack-chip">Mapbox GL JS</div>
+        <div class="stack-chip">n8n + Gemini</div>
+        <div class="stack-chip">Claude AI</div>
+        <div class="stack-chip">Vercel</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 2: PROBLEM / IDEA RECAP ══ -->
+  <div class="slide" id="s2">
+    <div class="slide-inner">
+      <div class="s-header"><span class="s-label">01 — Idea Recap</span></div>
+      <div class="s-title">The Problem We're <span>Solving</span></div>
+      <div class="s-body">
+        <div class="problem-grid">
+          <div class="problem-card pain">
+            <div class="pc-icon">😓</div>
+            <div class="pc-label">The Pain</div>
+            <div class="pc-title">Information is scattered & hard to find</div>
+            <div class="pc-text">Parents in Erfurt had no central platform to discover age-appropriate activities for their young children. Information was spread across dozens of websites, Facebook groups, and word of mouth.</div>
+          </div>
+          <div class="problem-card who">
+            <div class="pc-icon">👨‍👩‍👧</div>
+            <div class="pc-label">Who Is It For?</div>
+            <div class="pc-title">Parents with children ages 0–6 in Erfurt</div>
+            <div class="pc-text">Young families looking for daycare, playgroups, sports, arts, music, language classes, swimming, and nature activities — all within their neighbourhood.</div>
+          </div>
+          <div class="problem-card stat">
+            <div class="pc-icon">📍</div>
+            <div class="pc-label">The Insight</div>
+            <div class="pc-title">Parents think geographically, not by category</div>
+            <div class="pc-text">"What can my 2-year-old do on Saturday morning near our home?" — proximity and age-fit matter more than browsing abstract categories.</div>
+          </div>
+          <div class="problem-card sol">
+            <div class="pc-icon">🧭</div>
+            <div class="pc-label">The Solution</div>
+            <div class="pc-title">One platform — map, filter, book</div>
+            <div class="pc-text">ChildCompass puts every local activity on a live map. Filter by age, price, distance and category. Book a spot with one click. Providers manage listings and respond to requests.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 3: HYPOTHESIS ══ -->
+  <div class="slide" id="s3">
+    <div class="slide-inner">
+      <div class="s-header"><span class="s-label amber">02 — Critical Hypothesis & Outcome</span></div>
+      <div class="s-title">What We <span>Believed</span> — and What We Learned</div>
+      <div class="s-body" style="flex-direction:column; gap:16px;">
+        <div class="hypo-box">
+          <div class="hb-label">🧪 Most Critical Hypothesis</div>
+          <div class="hb-text">"If parents can see activities on a map filtered by their child's age, they will find relevant options faster than scattered Google searches — AND they are willing to book directly online instead of calling providers."</div>
+        </div>
+        <div class="outcome-row">
+          <div class="outcome-card test">
+            <div class="oc-step">How We Tested It</div>
+            <div class="oc-title">🔬 Prototype + Real User Interviews</div>
+            <div class="oc-text">Built a working prototype and talked to many parents in Erfurt. Every parent shared the same frustrations — scattered information, no central platform, hard to find age-appropriate options nearby.</div>
+          </div>
+          <div class="outcome-card result">
+            <div class="oc-step">What Was the Result</div>
+            <div class="oc-title">✅ Both Hypotheses Validated</div>
+            <div class="oc-text">Map + age filter proved effective for discovery. Booking flow works end-to-end on Vercel. Biggest real-world challenge: accurate provider data — coordinates and activity details had to be manually researched and verified.</div>
+          </div>
+          <div class="outcome-card learning">
+            <div class="oc-step">What Changed & What I Learned</div>
+            <div class="oc-title">💡 Data & Users First</div>
+            <div class="oc-text">Technology wasn't the hard part — data quality was. Wrong pins destroy trust faster than any UX problem. And talking to parents before writing code gave the confidence to keep building — they confirmed everything.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 4: JOURNEY ══ -->
+  <div class="slide" id="s4">
+    <div class="slide-inner" style="background:#f8fafc;">
+      <div class="s-header"><span class="s-label green">03 — The Journey</span></div>
+      <div class="s-title">Three Decisions That <span>Shaped</span> the Product</div>
+      <div class="s-body" style="flex-direction:column; gap:14px; padding-top:10px;">
+
+        <!-- Decision cards row -->
+        <div style="display:flex; gap:12px;">
+
+          <!-- Decision 1 -->
+          <div style="flex:1; background:white; border-radius:14px; border:1.5px solid #e2e8f0; padding:16px 18px; display:flex; flex-direction:column; gap:10px; position:relative; overflow:hidden;">
+            <div style="position:absolute; top:0; left:0; right:0; height:3px; background:#f59e0b;"></div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="width:32px; height:32px; border-radius:8px; background:#fefce8; border:1px solid #fde68a; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;">🧪</div>
+              <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#b45309;">Prototype Problem</div>
+            </div>
+            <div style="font-size:13px; font-weight:700; color:#1e293b; line-height:1.4;">"Dummy data didn't convince anyone — not even me"</div>
+            <div style="font-size:12px; color:#64748b; line-height:1.6;">The prototype proved the concept but the UI was rough and fake activities felt hollow. Real trust needs real data.</div>
+            <div style="margin-top:auto; display:flex; align-items:center; gap:7px; background:#fefce8; border-radius:8px; padding:8px 10px;">
+              <span style="font-size:14px;">→</span>
+              <span style="font-size:12px; font-weight:600; color:#92400e;">Decision: Build a real data pipeline before polishing the UI</span>
+            </div>
+          </div>
+
+          <!-- Decision 2 -->
+          <div style="flex:1; background:white; border-radius:14px; border:1.5px solid #e2e8f0; padding:16px 18px; display:flex; flex-direction:column; gap:10px; position:relative; overflow:hidden;">
+            <div style="position:absolute; top:0; left:0; right:0; height:3px; background:#2563eb;"></div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="width:32px; height:32px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;">🤖</div>
+              <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#1d4ed8;">The Pivot</div>
+            </div>
+            <div style="font-size:13px; font-weight:700; color:#1e293b; line-height:1.4;">"Manual research was too slow — so I built an AI scraper"</div>
+            <div style="font-size:12px; color:#64748b; line-height:1.6;">Finding real provider details (coordinates, prices, schedules) manually took hours per listing. The Claude-powered web scraper automated this — scaling from 17 to <strong>134 listings</strong>.</div>
+            <div style="margin-top:auto; display:flex; align-items:center; gap:7px; background:#eff6ff; border-radius:8px; padding:8px 10px;">
+              <span style="font-size:14px;">→</span>
+              <span style="font-size:12px; font-weight:600; color:#1d4ed8;">Decision: Let AI solve the data problem, not manual effort</span>
+            </div>
+          </div>
+
+          <!-- Decision 3 -->
+          <div style="flex:1; background:white; border-radius:14px; border:1.5px solid #bbf7d0; padding:16px 18px; display:flex; flex-direction:column; gap:10px; position:relative; overflow:hidden;">
+            <div style="position:absolute; top:0; left:0; right:0; height:3px; background:#10b981;"></div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="width:32px; height:32px; border-radius:8px; background:#f0fdf4; border:1px solid #bbf7d0; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;">🚀</div>
+              <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#065f46;">Validated on Vercel</div>
+            </div>
+            <div style="font-size:13px; font-weight:700; color:#1e293b; line-height:1.4;">"Testing on Vercel was not optional — it was essential"</div>
+            <div style="font-size:12px; color:#64748b; line-height:1.6;">Running locally is not enough. Only by deploying to Vercel could I verify that the full product — map, booking, auth, data — works in a real production environment for real users.</div>
+            <div style="margin-top:auto; display:flex; align-items:center; gap:7px; background:#f0fdf4; border-radius:8px; padding:8px 10px;">
+              <span style="font-size:14px;">→</span>
+              <span style="font-size:12px; font-weight:600; color:#065f46;">Decision: Always validate in production — not just on localhost</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- What is New title -->
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="font-size:15px; font-weight:800; color:#0f172a;">✨ What is New</div>
+          <div style="flex:1; height:1.5px; background:linear-gradient(90deg,#e2e8f0,transparent);"></div>
+        </div>
+
+        <!-- Map + Booking Flow row -->
+        <div style="display:flex; gap:14px; flex:1; min-height:0;">
+
+          <!-- Map screenshot -->
+          <div style="flex:1; background:white; border:1.5px solid #e2e8f0; border-radius:14px; overflow:hidden; display:flex; flex-direction:column; position:relative;">
+            <div style="position:absolute; top:10px; left:10px; z-index:2; background:#0f172a; color:white; font-size:11px; font-weight:700; padding:5px 10px; border-radius:8px; display:flex; align-items:center; gap:5px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span>
+              134 real activities on the map
+            </div>
+            <div style="flex:1; overflow:hidden; position:relative;">
+              <img id="mapImg" src="screenshot_map_134.png" alt="134 activities on map"
+                style="width:100%; height:100%; object-fit:cover; object-position:center 35%;" />
+            </div>
+          </div>
+
+          <!-- Booking Flow -->
+          <div style="flex:1.4; background:white; border:1.5px solid #e2e8f0; border-radius:14px; padding:14px 16px; display:flex; flex-direction:column; gap:10px;">
+            <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:#2563eb;">📅 Booking Flow — End-to-End (Validated in Production)</div>
+          <div style="display:flex; align-items:center; gap:0;">
+
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1;">
+              <div style="width:40px; height:40px; border-radius:10px; background:#fdf4ff; border:1.5px solid #e9d5ff; display:flex; align-items:center; justify-content:center; font-size:18px;">👧</div>
+              <div style="font-size:10.5px; font-weight:700; color:#1e293b; text-align:center;">Create Child</div>
+              <div style="font-size:9.5px; color:#94a3b8; text-align:center;">Name, age, profile</div>
+            </div>
+            <div style="color:#cbd5e1; font-size:16px; font-weight:700; padding:0 3px; flex-shrink:0; margin-bottom:12px;">→</div>
+
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1;">
+              <div style="width:40px; height:40px; border-radius:10px; background:#eff6ff; border:1.5px solid #bfdbfe; display:flex; align-items:center; justify-content:center; font-size:18px;">🗺️</div>
+              <div style="font-size:10.5px; font-weight:700; color:#1e293b; text-align:center;">Browse Map</div>
+              <div style="font-size:9.5px; color:#94a3b8; text-align:center;">Age + location filter</div>
+            </div>
+            <div style="color:#cbd5e1; font-size:16px; font-weight:700; padding:0 3px; flex-shrink:0; margin-bottom:12px;">→</div>
+
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1;">
+              <div style="width:40px; height:40px; border-radius:10px; background:#eff6ff; border:1.5px solid #bfdbfe; display:flex; align-items:center; justify-content:center; font-size:18px;">📋</div>
+              <div style="font-size:10.5px; font-weight:700; color:#1e293b; text-align:center;">View Activity</div>
+              <div style="font-size:9.5px; color:#94a3b8; text-align:center;">Details in modal</div>
+            </div>
+            <div style="color:#cbd5e1; font-size:16px; font-weight:700; padding:0 3px; flex-shrink:0; margin-bottom:12px;">→</div>
+
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1;">
+              <div style="width:40px; height:40px; border-radius:10px; background:#eff6ff; border:1.5px solid #bfdbfe; display:flex; align-items:center; justify-content:center; font-size:18px;">✉️</div>
+              <div style="font-size:10.5px; font-weight:700; color:#1e293b; text-align:center;">Send Request</div>
+              <div style="font-size:9.5px; color:#94a3b8; text-align:center;">Optional message</div>
+            </div>
+            <div style="color:#cbd5e1; font-size:16px; font-weight:700; padding:0 3px; flex-shrink:0; margin-bottom:12px;">→</div>
+
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1;">
+              <div style="width:40px; height:40px; border-radius:10px; background:#fefce8; border:1.5px solid #fde68a; display:flex; align-items:center; justify-content:center; font-size:18px;">👩‍💼</div>
+              <div style="font-size:10.5px; font-weight:700; color:#1e293b; text-align:center;">Provider Responds</div>
+              <div style="font-size:9.5px; color:#94a3b8; text-align:center;">Confirm or decline</div>
+            </div>
+            <div style="color:#cbd5e1; font-size:16px; font-weight:700; padding:0 3px; flex-shrink:0; margin-bottom:12px;">→</div>
+
+            <div onclick="openStatusModal()" style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; cursor:pointer; position:relative;" title="Click to see screenshots">
+              <div style="position:relative;">
+                <div style="width:40px; height:40px; border-radius:10px; background:#f0fdf4; border:2px solid #10b981; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 0 0 4px rgba(16,185,129,0.15); transition:transform .2s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">✅</div>
+                <div style="position:absolute;top:-6px;right:-6px;width:14px;height:14px;background:#ef4444;border-radius:50%;border:2px solid white;display:flex;align-items:center;justify-content:center;">
+                  <span style="font-size:8px;color:white;font-weight:700;">4</span>
+                </div>
+              </div>
+              <div style="font-size:10.5px; font-weight:700; color:#10b981; text-align:center;">Status Updated</div>
+              <div style="font-size:9px; color:#10b981; text-align:center; font-weight:600;">👆 click to see</div>
+            </div>
+
+          </div>
+          </div><!-- /booking flow card -->
+        </div><!-- /map+booking row -->
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 5: MVP FEATURES ══ -->
+  <div class="slide" id="s5">
+    <div class="slide-inner">
+      <div class="s-header"><span class="s-label">04 — Product Features</span></div>
+      <div class="s-title">What the <span>Final Product</span> Delivers</div>
+      <div class="s-body" style="flex-direction:column; gap:14px;">
+        <div class="stat-row">
+          <div class="stat-box"><div class="stat-num">17</div><div class="stat-label">Real Providers</div></div>
+          <div class="stat-box"><div class="stat-num">134</div><div class="stat-label">Live Listings</div></div>
+          <div class="stat-box"><div class="stat-num">10</div><div class="stat-label">Activity Categories</div></div>
+          <div class="stat-box"><div class="stat-num">2</div><div class="stat-label">Languages (DE/EN)</div></div>
+          <div class="stat-box"><div class="stat-num">3</div><div class="stat-label">User Roles</div></div>
+        </div>
+        <div class="feat-grid">
+          <div class="feat-card">
+            <div class="feat-icon">🗺️</div>
+            <div class="feat-title">Map-First Discovery</div>
+            <div class="feat-items">Split layout (43% cards / 57% map)<br>Real-time marker sync with filters<br>Price pills + hover tooltips<br>Mapbox GPS / GeolocateControl</div>
+          </div>
+          <div class="feat-card amber">
+            <div class="feat-icon">🔍</div>
+            <div class="feat-title">Smart Filtering</div>
+            <div class="feat-items">Age group filter (4 bands)<br>Price range slider<br>Distance filter<br>10 category pills</div>
+          </div>
+          <div class="feat-card green">
+            <div class="feat-icon">📅</div>
+            <div class="feat-title">Booking Flow</div>
+            <div class="feat-items">4-step modal (no page change)<br>Select or create child profile<br>Optional message to provider<br>Live status tracking</div>
+          </div>
+          <div class="feat-card purple">
+            <div class="feat-icon">👩‍💼</div>
+            <div class="feat-title">Provider Dashboard</div>
+            <div class="feat-items">Create, edit & publish listings<br>Confirm / decline requests<br>Business profile management<br>Claim unclaimed providers</div>
+          </div>
+          <div class="feat-card teal">
+            <div class="feat-icon">👨‍👩‍👧</div>
+            <div class="feat-title">Parent Dashboard</div>
+            <div class="feat-items">All bookings with live status<br>Manage children profiles<br>Cancel bookings inline<br>Booking history</div>
+          </div>
+          <div class="feat-card red">
+            <div class="feat-icon">🛠️</div>
+            <div class="feat-title">Admin Tools</div>
+            <div class="feat-items">AI-powered web scraper<br>Bulk import (XLSX/CSV)<br>Mapbox geocoder tool<br>Listing management panel</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 6: CLAUDE CODE WORKFLOW ══ -->
+  <div class="slide" id="s6">
+    <div class="slide-inner" style="background:#f8fafc;">
+      <div class="s-header"><span class="s-label" style="color:#7c3aed;">05 — AI Development Workflow</span></div>
+      <div class="s-title">My <span style="color:#2563eb;">Claude Code</span> Workflow</div>
+      <div class="s-body" style="flex-direction:column; gap:20px; padding-top:14px; justify-content:center;">
+
+        <!-- Flow steps -->
+        <div style="display:flex; align-items:center; justify-content:center; gap:0;">
+
+          <!-- Step 1: Plan -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:108px;">
+            <div style="width:50px;height:50px;border-radius:14px;background:#f5f3ff;border:2px solid #7c3aed;display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 2px 8px rgba(124,58,237,.15);">🧠</div>
+            <div style="text-align:center;">
+              <div style="font-size:11px;font-weight:800;color:#1e1b4b;margin-bottom:2px;">Plan</div>
+              <div style="font-size:10px;color:#64748b;line-height:1.5;">Plan Mode &amp;<br>Brainstorming</div>
+            </div>
+          </div>
+
+          <div style="height:2px;width:14px;background:linear-gradient(90deg,#7c3aed,#2563eb);flex-shrink:0;opacity:.4;"></div>
+
+          <!-- Step 2: Document -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:108px;">
+            <div style="width:50px;height:50px;border-radius:14px;background:#eff6ff;border:2px solid #2563eb;display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 2px 8px rgba(37,99,235,.15);">📝</div>
+            <div style="text-align:center;">
+              <div style="font-size:11px;font-weight:800;color:#1e3a8a;margin-bottom:2px;">Document</div>
+              <div style="font-size:10px;color:#64748b;line-height:1.5;">CLAUDE.md · rules.md<br>PRD · subagent specs</div>
+            </div>
+          </div>
+
+          <div style="height:2px;width:14px;background:linear-gradient(90deg,#2563eb,#d97706);flex-shrink:0;opacity:.4;"></div>
+
+          <!-- Step 3: Sub-Agents + TDD -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:108px;">
+            <div style="width:50px;height:50px;border-radius:14px;background:#fffbeb;border:2px solid #d97706;display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 2px 8px rgba(217,119,6,.15);">🤖</div>
+            <div style="text-align:center;">
+              <div style="font-size:11px;font-weight:800;color:#78350f;margin-bottom:2px;">Sub-Agents + TDD</div>
+              <div style="font-size:10px;color:#64748b;line-height:1.5;">Frontend · Backend<br>DB — parallel</div>
+            </div>
+          </div>
+
+          <div style="height:2px;width:14px;background:linear-gradient(90deg,#d97706,#e11d48);flex-shrink:0;opacity:.4;"></div>
+
+          <!-- Step 4: Codex Code Review -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:108px;">
+            <div style="width:50px;height:50px;border-radius:14px;background:#fff1f2;border:2px solid #e11d48;display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 2px 8px rgba(225,29,72,.12);">🔍</div>
+            <div style="text-align:center;">
+              <div style="font-size:11px;font-weight:800;color:#9f1239;margin-bottom:2px;">Codex Review</div>
+              <div style="font-size:10px;color:#64748b;line-height:1.5;">Codex plugin reviews<br>each PR automatically</div>
+            </div>
+          </div>
+
+          <div style="height:2px;width:14px;background:linear-gradient(90deg,#e11d48,#0d9488);flex-shrink:0;opacity:.4;"></div>
+
+          <!-- Step 5: Preview -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:108px;">
+            <div style="width:50px;height:50px;border-radius:14px;background:#f0fdfa;border:2px dashed #0d9488;display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 2px 8px rgba(13,148,136,.12);">👁️</div>
+            <div style="text-align:center;">
+              <div style="font-size:11px;font-weight:800;color:#0f766e;margin-bottom:2px;">Preview ✨</div>
+              <div style="font-size:10px;color:#64748b;line-height:1.5;">Vercel preview URL<br>Validate before merge</div>
+            </div>
+          </div>
+
+          <div style="height:2px;width:14px;background:linear-gradient(90deg,#0d9488,#16a34a);flex-shrink:0;opacity:.4;"></div>
+
+          <!-- Step 6: CI -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:108px;">
+            <div style="width:50px;height:50px;border-radius:14px;background:#f0fdf4;border:2px solid #16a34a;display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 2px 8px rgba(22,163,74,.15);">🔁</div>
+            <div style="text-align:center;">
+              <div style="font-size:11px;font-weight:800;color:#14532d;margin-bottom:2px;">CI</div>
+              <div style="font-size:10px;color:#64748b;line-height:1.5;">Lint · type-check<br>Tests on every PR</div>
+            </div>
+          </div>
+
+          <div style="height:2px;width:14px;background:linear-gradient(90deg,#16a34a,#4f46e5);flex-shrink:0;opacity:.4;"></div>
+
+          <!-- Step 7: CD -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:108px;">
+            <div style="width:50px;height:50px;border-radius:14px;background:#eef2ff;border:2px solid #4f46e5;display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 2px 8px rgba(79,70,229,.15);">🚀</div>
+            <div style="text-align:center;">
+              <div style="font-size:11px;font-weight:800;color:#312e81;margin-bottom:2px;">CD — Deploy</div>
+              <div style="font-size:10px;color:#64748b;line-height:1.5;">Merge to main →<br>Vercel auto-deploys</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Divider -->
+        <div style="height:1px;background:#e2e8f0;"></div>
+
+        <!-- 4 key takeaways -->
+        <div style="display:flex;gap:12px;">
+
+          <div style="flex:1;display:flex;gap:12px;align-items:flex-start;background:white;border:1.5px solid #ddd6fe;border-left:4px solid #7c3aed;border-radius:12px;padding:14px;">
+            <span style="font-size:22px;flex-shrink:0;">🧠</span>
+            <div>
+              <div style="font-size:12px;font-weight:700;color:#1e1b4b;margin-bottom:4px;">Plan first</div>
+              <div style="font-size:11.5px;color:#64748b;line-height:1.6;">Use Plan Mode or Superpowers Brainstorming to clarify scope, edge cases and architecture — before writing any code.</div>
+            </div>
+          </div>
+
+          <div style="flex:1;display:flex;gap:12px;align-items:flex-start;background:white;border:1.5px solid #bfdbfe;border-left:4px solid #2563eb;border-radius:12px;padding:14px;">
+            <span style="font-size:22px;flex-shrink:0;">📝</span>
+            <div>
+              <div style="font-size:12px;font-weight:700;color:#1e3a8a;margin-bottom:4px;">Spec with docs</div>
+              <div style="font-size:11.5px;color:#64748b;line-height:1.6;"><strong style="color:#1e3a8a;">CLAUDE.md</strong> locks in stack &amp; conventions. <strong style="color:#1e3a8a;">rules.md</strong> enforces coding standards across every agent and every session.</div>
+            </div>
+          </div>
+
+          <div style="flex:1;display:flex;gap:12px;align-items:flex-start;background:white;border:1.5px solid #fde68a;border-left:4px solid #d97706;border-radius:12px;padding:14px;">
+            <span style="font-size:22px;flex-shrink:0;">⚡</span>
+            <div>
+              <div style="font-size:12px;font-weight:700;color:#78350f;margin-bottom:4px;">Parallel sub-agents</div>
+              <div style="font-size:11.5px;color:#64748b;line-height:1.6;">Frontend, Backend and DB agents work simultaneously on separate branches — no waiting, no conflicts, faster delivery.</div>
+            </div>
+          </div>
+
+          <div style="flex:1;display:flex;gap:12px;align-items:flex-start;background:white;border:1.5px solid #bbf7d0;border-left:4px solid #16a34a;border-radius:12px;padding:14px;">
+            <span style="font-size:22px;flex-shrink:0;">🚀</span>
+            <div>
+              <div style="font-size:12px;font-weight:700;color:#14532d;margin-bottom:4px;">CI/CD — fully automated</div>
+              <div style="font-size:11.5px;color:#64748b;line-height:1.6;"><strong style="color:#14532d;">CI:</strong> every PR runs lint, type-check &amp; tests. <strong style="color:#14532d;">CD:</strong> merging to main triggers Vercel to deploy instantly — always live.</div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 7: AI WORKFLOW LEARNINGS ══ -->
+  <div class="slide" id="s7">
+    <div class="slide-inner" style="background:#f8fafc;">
+      <div class="s-header"><span class="s-label amber">06 — Key Learnings: AI Tools</span></div>
+      <div class="s-title">3 Specialized Sub-Agents — <span>The Real Workflow</span></div>
+      <div class="s-body" style="flex-direction:column; gap:10px; padding-top:8px; padding-bottom:20px; justify-content:center;">
+
+        <!-- 3 Agent boxes with real ownership — flex:1 so they fill space -->
+        <div style="display:flex; gap:10px;">
+
+          <!-- DB Agent -->
+          <div style="flex:1; background:white; border:1.5px solid #ddd6fe; border-top:4px solid #7c3aed; border-radius:14px; padding:13px 15px; display:flex; flex-direction:column; gap:7px; box-shadow:0 2px 8px rgba(124,58,237,.08);">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:20px;">🗄️</span>
+              <div>
+                <div style="font-size:12px;font-weight:800;color:#1e1b4b;">DB Agent</div>
+                <div style="font-size:9.5px;background:#f5f3ff;color:#7c3aed;padding:2px 7px;border-radius:5px;display:inline-block;font-weight:700;margin-top:2px;border:1px solid #ddd6fe;">db branch</div>
+              </div>
+            </div>
+            <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">Owns</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="font-size:10.5px;color:#334155;font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;">prisma/schema.prisma</div>
+              <div style="font-size:10.5px;color:#334155;font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;">prisma/migrations/</div>
+              <div style="font-size:10.5px;color:#334155;font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;">lib/prisma/repositories.ts</div>
+              <div style="font-size:10.5px;color:#334155;font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;">prisma/seed.mjs</div>
+            </div>
+            <div style="font-size:10px;color:#7c3aed;font-style:italic;">Never touches: API routes, components</div>
+          </div>
+
+          <!-- Sequence arrow -->
+          <div style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;flex-shrink:0;width:34px;">
+            <div style="font-size:9px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">seq.</div>
+            <div style="font-size:20px;color:#d97706;font-weight:900;">→</div>
+          </div>
+
+          <!-- Backend Agent -->
+          <div style="flex:1; background:white; border:1.5px solid #fde68a; border-top:4px solid #d97706; border-radius:14px; padding:13px 15px; display:flex; flex-direction:column; gap:7px; box-shadow:0 2px 8px rgba(217,119,6,.08);">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:20px;">⚙️</span>
+              <div>
+                <div style="font-size:12px;font-weight:800;color:#78350f;">Backend Agent</div>
+                <div style="font-size:9.5px;background:#fffbeb;color:#d97706;padding:2px 7px;border-radius:5px;display:inline-block;font-weight:700;margin-top:2px;border:1px solid #fde68a;">backend branch</div>
+              </div>
+            </div>
+            <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">Owns</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="font-size:10.5px;color:#334155;font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;">src/app/api/**</div>
+              <div style="font-size:10.5px;color:#334155;font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;">lib/supabase/ · middleware.ts</div>
+              <div style="font-size:10.5px;color:#334155;font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;">lib/email.ts · lib/geocode.ts</div>
+              <div style="font-size:10.5px;color:#334155;font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;">src/__tests__/api/</div>
+            </div>
+            <div style="font-size:10px;color:#d97706;font-style:italic;">Never touches: schema, components, pages</div>
+          </div>
+
+          <!-- Sequence arrow -->
+          <div style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;flex-shrink:0;width:34px;">
+            <div style="font-size:9px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">seq.</div>
+            <div style="font-size:20px;color:#d97706;font-weight:900;">→</div>
+          </div>
+
+          <!-- Frontend Agent -->
+          <div style="flex:1; background:white; border:1.5px solid #bfdbfe; border-top:4px solid #2563eb; border-radius:14px; padding:13px 15px; display:flex; flex-direction:column; gap:7px; box-shadow:0 2px 8px rgba(37,99,235,.08);">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:20px;">🎨</span>
+              <div>
+                <div style="font-size:12px;font-weight:800;color:#1e3a8a;">Frontend Agent</div>
+                <div style="font-size:9.5px;background:#eff6ff;color:#2563eb;padding:2px 7px;border-radius:5px;display:inline-block;font-weight:700;margin-top:2px;border:1px solid #bfdbfe;">frontend branch</div>
+              </div>
+            </div>
+            <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">Owns</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="font-size:10.5px;color:#334155;font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;">src/app/**/page.tsx · layout.tsx</div>
+              <div style="font-size:10.5px;color:#334155;font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;">src/components/**</div>
+              <div style="font-size:10.5px;color:#334155;font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;">globals.css · tailwind.config.ts</div>
+              <div style="font-size:10.5px;color:#334155;font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;">src/__tests__/components/</div>
+            </div>
+            <div style="font-size:10px;color:#2563eb;font-style:italic;">Never touches: API routes, Prisma, business logic</div>
+          </div>
+
+        </div>
+
+        <!-- TDD + Parallel row -->
+        <div style="display:flex;gap:10px;flex-shrink:0;">
+          <div style="flex:1;background:white;border:1.5px solid #bbf7d0;border-left:4px solid #16a34a;border-radius:11px;padding:10px 14px;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;flex-shrink:0;">🧪</span>
+            <div>
+              <div style="font-size:11px;font-weight:700;color:#14532d;margin-bottom:2px;">TDD — Red → Green → Refactor</div>
+              <div style="font-size:10.5px;color:#64748b;line-height:1.4;">Each agent writes tests first: DB → <code style="font-size:10px;color:#7c3aed;background:#f5f3ff;padding:1px 4px;border-radius:3px;">repositories.test.ts</code> · Backend → <code style="font-size:10px;color:#d97706;background:#fffbeb;padding:1px 4px;border-radius:3px;">api.test.ts</code> · Frontend → <code style="font-size:10px;color:#2563eb;background:#eff6ff;padding:1px 4px;border-radius:3px;">component.test.tsx</code></div>
+            </div>
+          </div>
+          <div style="flex:1;background:white;border:1.5px solid #fde68a;border-left:4px solid #d97706;border-radius:11px;padding:10px 14px;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;flex-shrink:0;">⚡</span>
+            <div>
+              <div style="font-size:11px;font-weight:700;color:#78350f;margin-bottom:2px;">Sequential or Parallel — depends on the feature</div>
+              <div style="font-size:10.5px;color:#64748b;line-height:1.4;">Full feature (DB→API→UI) runs sequentially. Independent tasks — e.g. "fix map zoom" + "add pagination" — run simultaneously across branches.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- What made it effective — full-width colored band -->
+        <div style="background:white;border:1.5px solid #e2e8f0;border-radius:12px;padding:12px 16px;flex-shrink:0;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#d97706;margin-bottom:10px;">● What made the process more effective?</div>
+          <div style="display:flex;gap:9px;">
+
+            <div style="flex:1;display:flex;gap:8px;align-items:flex-start;background:#f8fafc;border-radius:8px;padding:9px 11px;">
+              <span style="font-size:14px;flex-shrink:0;">🎯</span>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:#0f172a;margin-bottom:2px;">Focused context per agent</div>
+                <div style="font-size:10.5px;color:#64748b;line-height:1.4;">Each agent loads only its domain rules — no overload, no cross-layer confusion.</div>
+              </div>
+            </div>
+
+            <div style="flex:1;display:flex;gap:8px;align-items:flex-start;background:#f8fafc;border-radius:8px;padding:9px 11px;">
+              <span style="font-size:14px;flex-shrink:0;">🚧</span>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:#0f172a;margin-bottom:2px;">Hard boundaries enforced</div>
+                <div style="font-size:10.5px;color:#64748b;line-height:1.4;">DB never writes API routes. Frontend never touches Prisma. Bugs stayed isolated.</div>
+              </div>
+            </div>
+
+            <div style="flex:1;display:flex;gap:8px;align-items:flex-start;background:#f8fafc;border-radius:8px;padding:9px 11px;">
+              <span style="font-size:14px;flex-shrink:0;">📋</span>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:#0f172a;margin-bottom:2px;">CLAUDE.md + rules.md always loaded</div>
+                <div style="font-size:10.5px;color:#64748b;line-height:1.4;">9 rule files auto-load — consistent standards across all agents, every session.</div>
+              </div>
+            </div>
+
+            <div style="flex:1;display:flex;gap:8px;align-items:flex-start;background:#f8fafc;border-radius:8px;padding:9px 11px;">
+              <span style="font-size:14px;flex-shrink:0;">🔁</span>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:#0f172a;margin-bottom:2px;">TDD caught bugs at the boundary</div>
+                <div style="font-size:10.5px;color:#64748b;line-height:1.4;">Tests written before code — CI gate blocked broken PRs before merging.</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 8: AI FEATURES ══ -->
+  <div class="slide" id="s8">
+    <div class="slide-inner" style="background:#f8fafc;">
+      <div class="s-header"><span class="s-label amber">07 — AI Features in the Product</span></div>
+      <div class="s-title">Two AI Features — <span>Built Into the Product</span></div>
+      <div class="s-body" style="flex-direction:row; gap:16px; padding-top:8px; padding-bottom:20px; align-items:center; justify-content:center;">
+
+        <!-- Two feature columns -->
+        <div style="display:contents;">
+
+          <!-- ── Feature 1: Claude Code Web Search ── -->
+          <div style="flex:1; border:1.5px solid #ddd6fe; border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 2px 12px rgba(124,58,237,.08);">
+
+            <!-- TOP: Description -->
+            <div style="background:white; padding:16px 20px; border-bottom:1px solid #ddd6fe;">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;">
+                <span style="font-size:22px;">🔍</span>
+                <div>
+                  <div style="font-size:13px;font-weight:800;color:#1e1b4b;">Claude Code Web Search</div>
+                  <div style="font-size:10px;background:#f5f3ff;color:#7c3aed;padding:2px 8px;border-radius:20px;font-weight:700;border:1px solid #ddd6fe;display:inline-block;margin-top:3px;">claude-sonnet-4-5 · built-in web_search</div>
+                </div>
+              </div>
+              <div style="font-size:12px;color:#475569;line-height:1.6;">Admin selects desired activity categories (e.g. DAYCARE, SPORTS). Claude uses the built-in <code style="background:#f5f3ff;color:#7c3aed;padding:1px 5px;border-radius:3px;font-size:11px;">web_search</code> tool to find providers in Erfurt, extracts structured listing data (title, price, age range, address), and imports directly into the database.</div>
+            </div>
+
+            <!-- MIDDLE: Workflow -->
+            <div style="background:#faf9ff; padding:12px 20px; border-bottom:1px solid #ddd6fe; display:flex; flex-direction:column;">
+              <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#a78bfa;margin-bottom:10px;">Workflow</div>
+              <!-- Icon row -->
+              <div style="display:grid;grid-template-columns:1fr 26px 1fr 26px 1fr 26px 1fr 26px 1fr;align-items:center;margin-bottom:5px;">
+                <div style="display:flex;justify-content:center;"><div style="width:40px;height:40px;background:white;border:1.5px solid #ddd6fe;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 1px 4px rgba(0,0,0,.05);">👤</div></div>
+                <div style="height:1.5px;background:linear-gradient(90deg,#ddd6fe,#c4b5fd);"></div>
+                <div style="display:flex;justify-content:center;"><div style="width:40px;height:40px;background:white;border:1.5px solid #ddd6fe;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 1px 4px rgba(0,0,0,.05);">🤖</div></div>
+                <div style="height:1.5px;background:linear-gradient(90deg,#c4b5fd,#a78bfa);"></div>
+                <div style="display:flex;justify-content:center;"><div style="width:40px;height:40px;background:white;border:1.5px solid #ddd6fe;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 1px 4px rgba(0,0,0,.05);">🌐</div></div>
+                <div style="height:1.5px;background:linear-gradient(90deg,#a78bfa,#8b5cf6);"></div>
+                <div style="display:flex;justify-content:center;"><div style="width:40px;height:40px;background:white;border:1.5px solid #ddd6fe;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 1px 4px rgba(0,0,0,.05);">📋</div></div>
+                <div style="height:1.5px;background:linear-gradient(90deg,#8b5cf6,#7c3aed);"></div>
+                <div style="display:flex;justify-content:center;"><div style="width:40px;height:40px;background:white;border:1.5px solid #ddd6fe;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 1px 4px rgba(0,0,0,.05);">🗄️</div></div>
+              </div>
+              <!-- Label row -->
+              <div style="display:grid;grid-template-columns:1fr 26px 1fr 26px 1fr 26px 1fr 26px 1fr;margin-bottom:11px;">
+                <div style="text-align:center;font-size:9px;color:#64748b;font-weight:600;">Admin<br>(category)</div>
+                <div></div>
+                <div style="text-align:center;font-size:9px;color:#64748b;font-weight:600;">Claude<br>Sonnet</div>
+                <div></div>
+                <div style="text-align:center;font-size:9px;color:#64748b;font-weight:600;">web_search<br>tool</div>
+                <div></div>
+                <div style="text-align:center;font-size:9px;color:#64748b;font-weight:600;">Structured<br>data</div>
+                <div></div>
+                <div style="text-align:center;font-size:9px;color:#64748b;font-weight:600;">DB &amp;<br>Import</div>
+              </div>
+              <!-- Short description -->
+              <div style="font-size:10.5px;color:#7c3aed;font-style:italic;line-height:1.5;border-top:1px solid #ede9fe;padding-top:8px;">Claude autonomously searches the web, parses activity listings, and saves structured records — no manual data entry required.</div>
+            </div>
+
+            <!-- BOTTOM: Purpose -->
+            <div style="background:#f5f3ff; padding:14px 20px;">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:#7c3aed;margin-bottom:6px;">How it supports the product</div>
+              <div style="font-size:11.5px;color:#374151;line-height:1.6;">Turns hours of manual research into minutes. Scaled the catalogue from 17 seeded providers to <strong style="color:#1e1b4b;">134 real listings</strong> without human effort — and enables expansion to new cities with a single command.</div>
+            </div>
+
+          </div>
+
+          <!-- ── Feature 2: n8n Chatbot ── -->
+          <div style="flex:1; border:1.5px solid #bfdbfe; border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 2px 12px rgba(37,99,235,.08);">
+
+            <!-- TOP: Description -->
+            <div style="background:white; padding:16px 20px; border-bottom:1px solid #bfdbfe;">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;">
+                <span style="font-size:22px;">💬</span>
+                <div>
+                  <div style="font-size:13px;font-weight:800;color:#1e3a8a;">n8n Workflow Chatbot</div>
+                  <div style="font-size:10px;background:#eff6ff;color:#2563eb;padding:2px 8px;border-radius:20px;font-weight:700;border:1px solid #bfdbfe;display:inline-block;margin-top:3px;">n8n · Google Gemini AI</div>
+                </div>
+              </div>
+              <div style="font-size:12px;color:#475569;line-height:1.6;">A floating chat bubble available on every page. Parents type a question — the Next.js API forwards it to an n8n webhook, which passes it to Google Gemini with a ChildCompass system prompt, and streams the reply back into the chat widget.</div>
+            </div>
+
+            <!-- MIDDLE: Workflow -->
+            <div style="background:#f0f7ff; padding:12px 20px; border-bottom:1px solid #bfdbfe; display:flex; flex-direction:column;">
+              <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#60a5fa;margin-bottom:10px;">Workflow</div>
+              <!-- Icon row -->
+              <div style="display:grid;grid-template-columns:1fr 20px 1fr 20px 1fr 20px 1fr 20px 1fr 20px 1fr;align-items:center;margin-bottom:5px;">
+                <div style="display:flex;justify-content:center;"><div style="width:38px;height:38px;background:white;border:1.5px solid #bfdbfe;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 1px 4px rgba(0,0,0,.05);">👤</div></div>
+                <div style="height:1.5px;background:linear-gradient(90deg,#bfdbfe,#93c5fd);"></div>
+                <div style="display:flex;justify-content:center;"><div style="width:38px;height:38px;background:white;border:1.5px solid #bfdbfe;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 1px 4px rgba(0,0,0,.05);">💬</div></div>
+                <div style="height:1.5px;background:linear-gradient(90deg,#93c5fd,#60a5fa);"></div>
+                <div style="display:flex;justify-content:center;"><div style="width:38px;height:38px;background:white;border:1.5px solid #bfdbfe;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 1px 4px rgba(0,0,0,.05);">🔗</div></div>
+                <div style="height:1.5px;background:linear-gradient(90deg,#60a5fa,#3b82f6);"></div>
+                <div style="display:flex;justify-content:center;"><div style="width:38px;height:38px;background:white;border:1.5px solid #bfdbfe;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 1px 4px rgba(0,0,0,.05);">⚡</div></div>
+                <div style="height:1.5px;background:linear-gradient(90deg,#3b82f6,#2563eb);"></div>
+                <div style="display:flex;justify-content:center;"><div style="width:38px;height:38px;background:white;border:1.5px solid #bfdbfe;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 1px 4px rgba(0,0,0,.05);">✨</div></div>
+                <div style="height:1.5px;background:linear-gradient(90deg,#2563eb,#1d4ed8);"></div>
+                <div style="display:flex;justify-content:center;"><div style="width:38px;height:38px;background:white;border:1.5px solid #bfdbfe;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 1px 4px rgba(0,0,0,.05);">💡</div></div>
+              </div>
+              <!-- Label row -->
+              <div style="display:grid;grid-template-columns:1fr 20px 1fr 20px 1fr 20px 1fr 20px 1fr 20px 1fr;margin-bottom:11px;">
+                <div style="text-align:center;font-size:9px;color:#64748b;font-weight:600;">Parent</div>
+                <div></div>
+                <div style="text-align:center;font-size:9px;color:#64748b;font-weight:600;">Chat<br>Widget</div>
+                <div></div>
+                <div style="text-align:center;font-size:9px;color:#64748b;font-weight:600;">/api/<br>support</div>
+                <div></div>
+                <div style="text-align:center;font-size:9px;color:#64748b;font-weight:600;">n8n<br>Webhook</div>
+                <div></div>
+                <div style="text-align:center;font-size:9px;color:#64748b;font-weight:600;">Gemini<br>AI</div>
+                <div></div>
+                <div style="text-align:center;font-size:9px;color:#64748b;font-weight:600;">Reply</div>
+              </div>
+              <!-- Short description -->
+              <div style="font-size:10.5px;color:#2563eb;font-style:italic;line-height:1.5;border-top:1px solid #dbeafe;padding-top:8px;">Next.js forwards the question to n8n, which enriches it with a ChildCompass system prompt and passes it to Google Gemini for a contextual reply.</div>
+            </div>
+
+            <!-- BOTTOM: Purpose -->
+            <div style="background:#eff6ff; padding:14px 20px;">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:#2563eb;margin-bottom:6px;">How it supports the product</div>
+              <div style="font-size:11.5px;color:#374151;line-height:1.6;">Reduces drop-off during discovery — parents get instant, contextual answers about activities, booking steps, and pricing <strong style="color:#1e3a8a;">without leaving the page</strong>. Builds trust and lowers the barrier to booking. Zero support overhead.</div>
+            </div>
+
+          </div>
+
+        </div><!-- /display:contents -->
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 9: VISION ══ -->
+  <div class="slide" id="s11">
+    <div class="slide-inner" style="background:linear-gradient(135deg,#0f172a,#1a2744);">
+      <div class="s-header"><span class="s-label" style="color:#34d399;">09 — Vision &amp; Next Steps</span></div>
+      <div class="s-title" style="color:white;">What We'd <span style="color:#2563eb;">Build</span> Next</div>
+      <div class="s-body">
+        <div class="vision-grid">
+          <div class="vision-card">
+            <div class="vc-phase p1">Phase 1 — Near Term</div>
+            <div class="vc-title">⭐ Reviews & Ratings</div>
+            <div class="vc-items">
+              <div class="vc-item">Parents leave reviews after confirmed bookings</div>
+              <div class="vc-item">Provider credibility signals on listing cards</div>
+              <div class="vc-item">AI-moderated review quality — spam &amp; abuse detection</div>
+            </div>
+          </div>
+          <div class="vision-card">
+            <div class="vc-phase p2">Phase 2 — Growth</div>
+            <div class="vc-title">📊 Provider Analytics</div>
+            <div class="vc-items">
+              <div class="vc-item">Dashboard: views, booking conversion, peak times</div>
+              <div class="vc-item">AI-generated tips to improve listing performance</div>
+              <div class="vc-item">Parent engagement trends across categories</div>
+            </div>
+          </div>
+          <div class="vision-card">
+            <div class="vc-phase p3">Phase 3 — Monetisation</div>
+            <div class="vc-title">💳 Integrated Payments</div>
+            <div class="vc-items">
+              <div class="vc-item">Stripe integration — bookings become real transactions</div>
+              <div class="vc-item">Providers receive payouts, platform takes commission</div>
+              <div class="vc-item">Deposits and cancellation policies</div>
+            </div>
+          </div>
+          <div class="vision-card">
+            <div class="vc-phase p4">Long-Term Vision</div>
+            <div class="vc-title">🇩🇪 Scale Across Germany</div>
+            <div class="vc-items">
+              <div class="vc-item">Expand beyond Erfurt — multi-city support already in schema</div>
+              <div class="vc-item">AI scraper can auto-seed new cities at scale</div>
+              <div class="vc-item">Mobile app (React Native) for on-the-go discovery</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 12: THANK YOU / Q&A ══ -->
+  <div class="slide" id="s12">
+    <div class="ty-inner">
+      <div class="ty-circle"></div>
+      <div class="ty-circle"></div>
+      <div class="ty-badge">🎓 AI Product Engineering Bootcamp — Final Presentation</div>
+      <h2>Thank you!<br><span>Questions?</span></h2>
+      <p class="ty-sub">ChildCompass — built entirely with conversational AI, deployed to production, serving real families in Erfurt.</p>
+      <div class="qa-topics">
+        <div class="qa-chip">🏗️ Product decisions</div>
+        <div class="qa-chip">⚡ Technical trade-offs</div>
+        <div class="qa-chip">🤖 AI workflow choices</div>
+        <div class="qa-chip">📚 Learnings &amp; challenges</div>
+        <div class="qa-chip">🗺️ Map implementation</div>
+        <div class="qa-chip">🔐 Auth &amp; security</div>
+      </div>
+      <div class="ty-url">🌐 <a href="https://childcompass.vercel.app" target="_blank" rel="noopener" style="color:#93c5fd;text-decoration:none;border-bottom:1px solid rgba(147,197,253,.4);transition:color .2s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='#93c5fd'">https://childcompass.vercel.app</a></div>
+    </div>
+  </div>
+
+</div><!-- /deck -->
+
+<!-- Status Modal -->
+<div id="statusModal">
+  <div class="sm-box">
+    <div class="sm-header">
+      <div class="sm-title">✅ Status Updated — How It Looks in the App</div>
+      <button class="sm-close" onclick="closeStatusModal()">✕</button>
+    </div>
+    <div class="sm-steps" id="smSteps"></div>
+    <div class="sm-content">
+      <div class="sm-img-wrap"><img id="smImg" src="" alt="" /></div>
+      <div class="sm-info">
+        <div class="sm-num" id="smNum"></div>
+        <div class="sm-caption" id="smCaption"></div>
+        <div class="sm-desc" id="smDesc"></div>
+        <div class="sm-nav">
+          <button class="sm-nav-btn prev" id="smPrev" onclick="smNavigate(-1)">← Back</button>
+          <button class="sm-nav-btn next" id="smNext" onclick="smNavigate(1)">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Nav -->
+<div id="nav">
+  <button class="nav-btn" id="prevBtn" disabled onclick="navigate(-1)">←</button>
+  <span id="counter">1 / 12</span>
+  <button class="nav-btn" id="nextBtn" onclick="navigate(1)">→</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  function navigate(dir) {
+    const next = current + dir;
+    if (next < 0 || next >= total) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    setTimeout(() => slides[current - dir].classList.remove('exit'), 450);
+    current = next;
+    slides[current].classList.add('active');
+    updateUI();
+  }
+
+  function updateUI() {
+    document.getElementById('counter').textContent = `${current + 1} / ${total}`;
+    document.getElementById('prevBtn').disabled = current === 0;
+    document.getElementById('nextBtn').disabled = current === total - 1;
+    document.getElementById('progress-bar').style.width = `${((current + 1) / total) * 100}%`;
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); navigate(1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                   { e.preventDefault(); navigate(-1); }
+    if (e.key === 'Home') { current = -1; navigate(1); }
+    if (e.key === 'End')  { current = total - 2; navigate(1); }
+  });
+
+  // Touch/swipe support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1);
+  });
+
+  // Inject per-slide page numbers (class adjusted by theme toggle)
+  slides.forEach((slide, i) => {
+    const pg = document.createElement('div');
+    pg.className = 'slide-pg';
+    pg.textContent = `${i + 1} / ${total}`;
+    slide.appendChild(pg);
+  });
+
+  updateUI();
+
+  // ── Theme toggle ──
+  const themeBtn = document.getElementById('themeBtn');
+  let isDark = true;
+  document.documentElement.classList.add('dark');
+
+  function applyTheme(dark) {
+    isDark = dark;
+    document.documentElement.classList.toggle('dark',  isDark);
+    document.documentElement.classList.toggle('light', !isDark);
+    themeBtn.textContent = isDark ? '🌙' : '☀️';
+    // All slides share the same bg in each mode — uniform page number colour
+    document.querySelectorAll('.slide-pg').forEach(pg => {
+      pg.classList.toggle('dark', !isDark);
+    });
+  }
+  applyTheme(false); // start in light mode
+
+  themeBtn.addEventListener('click', () => applyTheme(!isDark));
+
+  // ── Status Modal ──
+  const smSlides = [
+    {
+      img: 'screenshot_provider_dashboard.png',
+      num: 'Step 1 of 4 — Provider Dashboard',
+      caption: 'Provider confirms the booking request',
+      desc: 'In their dashboard, the provider sees the booking from Lei Wang for "Zy". They review it and click Confirm — status changes to ✅ Confirmed.'
+    },
+    {
+      img: 'screenshot_parent_dashboard.png',
+      num: 'Step 2 of 4 — Parent Dashboard',
+      caption: 'Live status update in Leis Übersicht',
+      desc: 'The parent dashboard updates in real time — 1 Bestätigt. The booking card shows ✅ Bestätigt badge. No page refresh needed.'
+    },
+    {
+      img: 'screenshot_booking_confirmed_modal.png',
+      num: 'Step 3 of 4 — Booking Detail Modal',
+      caption: 'Parent sees "🎉 Platz bestätigt!" in the modal',
+      desc: 'The booking detail modal shows the confirmed status with full activity details: location, price, provider contact — and a green confirmation banner at the bottom.'
+    },
+    {
+      img: 'screenshot_email_confirmation.png',
+      num: 'Step 4 of 4 — Email Notification',
+      caption: '"Buchung bestätigt: LEI Kita" — email sent automatically',
+      desc: 'ChildCompass sends a confirmation email via Resend to the parent with booking details: listing, provider, child name, and a direct link to the dashboard.'
+    }
+  ];
+
+  let smCurrent = 0;
+
+  function buildSmSteps() {
+    const wrap = document.getElementById('smSteps');
+    wrap.innerHTML = '';
+    smSlides.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'sm-step-dot' + (i === smCurrent ? ' active' : '');
+      d.onclick = () => smGoTo(i);
+      wrap.appendChild(d);
+    });
+  }
+
+  function smRender() {
+    const s = smSlides[smCurrent];
+    const img = document.getElementById('smImg');
+    img.classList.remove('loaded');
+    img.src = s.img;
+    img.onload = () => img.classList.add('loaded');
+    document.getElementById('smNum').textContent = s.num;
+    document.getElementById('smCaption').textContent = s.caption;
+    document.getElementById('smDesc').textContent = s.desc;
+    document.getElementById('smPrev').disabled = smCurrent === 0;
+    const nextBtn = document.getElementById('smNext');
+    if (smCurrent === smSlides.length - 1) {
+      nextBtn.textContent = '✕ Close';
+      nextBtn.onclick = closeStatusModal;
+    } else {
+      nextBtn.textContent = 'Next →';
+      nextBtn.onclick = () => smNavigate(1);
+    }
+    buildSmSteps();
+  }
+
+  function smGoTo(i) { smCurrent = i; smRender(); }
+  function smNavigate(dir) { smCurrent = Math.max(0, Math.min(smSlides.length - 1, smCurrent + dir)); smRender(); }
+
+  function openStatusModal() {
+    smCurrent = 0;
+    smRender();
+    document.getElementById('statusModal').classList.add('open');
+  }
+  function closeStatusModal() {
+    document.getElementById('statusModal').classList.remove('open');
+  }
+
+  // Close modal on backdrop click
+  document.getElementById('statusModal').addEventListener('click', function(e) {
+    if (e.target === this) closeStatusModal();
+  });
+
+  // ── Fullscreen ──
+  const fsBtn = document.getElementById('fsBtn');
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      const el = document.documentElement;
+      (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen).call(el);
+    } else {
+      (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen).call(document);
+    }
+  }
+
+  function updateFsIcon() {
+    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    fsBtn.textContent = isFs ? '✕' : '⛶';
+    fsBtn.title = isFs ? 'Exit fullscreen (F or Esc)' : 'Enter fullscreen (F)';
+    document.body.classList.toggle('is-fullscreen', isFs);
+  }
+
+  fsBtn.addEventListener('click', toggleFullscreen);
+  document.addEventListener('fullscreenchange', updateFsIcon);
+  document.addEventListener('webkitfullscreenchange', updateFsIcon);
+  document.addEventListener('mozfullscreenchange', updateFsIcon);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+  });
+</script>
+</body>
+</html>
