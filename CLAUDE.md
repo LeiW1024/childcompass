@@ -369,6 +369,21 @@ Standards enforced across the codebase, discovered during systematic code review
 
 ---
 
+## Claude Code Hooks
+
+Harness-level enforcement of the rules above. Configured in `.claude/settings.json`; scripts in `.claude/hooks/`. Full reference: [`.claude/hooks/hooks.md`](.claude/hooks/hooks.md).
+
+| Event | Script | Purpose |
+|---|---|---|
+| `SessionStart` | `branch-info.sh` | Prints active agent scope (DB / Backend / Frontend) based on the current git branch |
+| `PreToolUse` (Edit/Write/MultiEdit) | `branch-guard.sh` | Blocks edits outside the active branch's allowed paths (db → `prisma/`, `src/lib/prisma/`, `src/types/`; backend → `src/app/api/`, `src/lib/`, `src/middleware.ts`; frontend → `src/app/` excl. api, `src/components/`, `src/styles/`) |
+| `PostToolUse` (Edit/Write/MultiEdit) | `post-edit-verify.sh` | Runs `eslint` on the changed file + matching jest test under `src/__tests__/` if present |
+| `Stop` | `stop-verify.sh` | Runs `npm run lint` + `npm run test` before any turn ends; blocks completion on failure |
+
+All blocking hooks exit 2 with stderr naming the rule and rule file. Restart Claude Code from inside the project after any change to `.claude/settings.json` or hook scripts.
+
+---
+
 ## MVP Scope
 
 ### Included & Live
